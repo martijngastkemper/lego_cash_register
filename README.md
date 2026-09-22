@@ -20,7 +20,6 @@ A **macOS-only** command-line tool to scan LEGO parts using your webcam and add 
 - **Node.js 18+**
 - **[Homebrew](https://brew.sh/)** (to install `imagesnap`)
 - **API Keys**:
-  - [Brickognize API Key](https://brickognize.com/) (set as `BRICKOGNIZE_API_KEY`)
   - [Rebrickable API Key](https://rebrickable.com/api/) (set as `REBRICKABLE_API_KEY`)
 
 ---
@@ -40,12 +39,11 @@ pnpm install
 ```
 
 ### 3. Configure API Keys
-Set your API keys as environment variables:
+Set your Rebrickable API key as an environment variable:
 ```bash
-export BRICKOGNIZE_API_KEY="your_brickognize_api_key"
 export REBRICKABLE_API_KEY="your_rebrickable_api_key"
 ```
-To make them persistent, add them to your shell config (e.g., `~/.zshrc` or `~/.bashrc`).
+To make it persistent, add it to your shell config (e.g., `~/.zshrc` or `~/.bashrc`).
 
 ---
 
@@ -135,9 +133,8 @@ Parts list finalized.
 - Check camera permissions in **System Settings > Privacy & Security > Camera**.
 
 ### API Key Errors
-- Verify your API keys are set correctly:
+- Verify your Rebrickable API key is set correctly:
   ```bash
-  echo $BRICKOGNIZE_API_KEY
   echo $REBRICKABLE_API_KEY
   ```
 - Ensure your Rebrickable API key is valid and has the correct permissions.

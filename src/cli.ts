@@ -13,8 +13,7 @@ program
   .requiredOption('--rebrickable-key <key>', 'Rebrickable API key')
   .option('--rebrickable-user <user>', 'Rebrickable username')
   .option('--rebrickable-password <password>', 'Rebrickable password')
-  .option('--dry-run', 'Scan without adding to Rebrickable')
-  .option('--brickognize-key <key>', 'Brickognize API key (default: BRICKOGNIZE_API_KEY env)');
+  .option('--dry-run', 'Scan without adding to Rebrickable');
 
 program
   .command('scan')
@@ -31,13 +30,7 @@ program
       rebrickable.client.setUserToken(user_token);
     }
 
-    const brickognizeKey = options.brickognizeKey || process.env.BRICKOGNIZE_API_KEY;
-    if (!brickognizeKey) {
-      console.error('Brickognize API key is required. Set --brickognize-key or BRICKOGNIZE_API_KEY env.');
-      process.exit(1);
-    }
-
-    const brickognize = new BrickognizeClient(brickognizeKey);
+    const brickognize = new BrickognizeClient();
     await startContinuousScanning(rebrickable, brickognize, options.dryRun);
   });
 

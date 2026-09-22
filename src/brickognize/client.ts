@@ -41,11 +41,9 @@ interface SearchResults {
 }
 
 export class BrickognizeClient {
-  private apiKey: string;
   private baseUrl: string;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
+  constructor() {
     this.baseUrl = 'https://api.brickognize.com';
   }
 
@@ -59,7 +57,6 @@ export class BrickognizeClient {
       {
         headers: {
           ...form.getHeaders(),
-          Authorization: `Bearer ${this.apiKey}`,
         },
       }
     );

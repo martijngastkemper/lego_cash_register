@@ -15,6 +15,12 @@ export async function scanSinglePart(
   brickognize: BrickognizeClient
 ): Promise<ScannedPart | null> {
   const { items, colors } = await brickognize.predictPart(imagePath);
+
+  if (!items || items.length === 0) {
+    console.error('No parts detected in the image. Try again with a clearer image.');
+    return null;
+  }
+
   const { id: partId, name } = items[0];
 
   let colorName = 'Unknown';

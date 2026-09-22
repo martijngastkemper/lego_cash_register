@@ -3,6 +3,7 @@ import { captureImage, cleanupTempFiles } from '../camera/capture.js';
 import { RebrickableWrapper } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
 import { ScannedPart, scanSinglePart } from './scan.js';
+import { setReadlineInterface, closeReadlineInterface } from '../utils/prompt.js';
 
 export async function startContinuousScanning(
   rebrickable: RebrickableWrapper,
@@ -15,10 +16,14 @@ export async function startContinuousScanning(
     output: process.stdout,
   });
 
+  // Set the readline interface for promptUser
+  setReadlineInterface(rl);
+
   console.log('Starting continuous scanning. Press "q" + Enter to stop.');
 
   process.on('SIGINT', async () => {
     console.log('\nStopping...');
+    closeReadlineInterface();
     if (dryRun) {
       await finalizePartsList(partsList);
     }
@@ -32,6 +37,7 @@ export async function startContinuousScanning(
     });
 
     if (input.toLowerCase() === 'q') {
+      closeReadlineInterface();
       if (dryRun) {
         await finalizePartsList(partsList);
       }

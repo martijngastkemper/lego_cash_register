@@ -33,39 +33,36 @@ export class RebrickableWrapper {
       return;
     }
 
-    // Default to last used part list (if exists)
-    let defaultPartListId = config.lastPartListId;
-    if (!defaultPartListId && partLists.length > 0) {
-      defaultPartListId = partLists[0].id.toString();
+    // Check if a last part list was previously selected
+    const hasLastPartList = config.lastPartListId !== undefined;
+
+    if (hasLastPartList) {
+      // Default to last used part list
+      let defaultPartListId = config.lastPartListId!;
+      const defaultPartList = partLists.find((list) => list.id.toString() === defaultPartListId);
+      const defaultName = defaultPartList?.name || partLists[0].name;
+
+      const answer = await promptUser(
+        `Use part list "${defaultName}" (ID: ${defaultPartListId})? [Y/n]: `
+      );
+
+      if (answer.toLowerCase() === 'y' || answer === '') {
+        this.partListId = defaultPartListId;
+        return;
+      }
     }
 
-    const defaultPartList = partLists.find((list) => list.id.toString() === defaultPartListId);
-    const defaultName = defaultPartList?.name || partLists[0].name;
+    // Show list of part lists with option to create a new one
+    console.log('Available part lists:');
+    console.log('0. Create a new part list');
+    partLists.forEach((list, index) => {
+      console.log(`${index + 1}. ${list.name} (ID: ${list.id})`);
+    });
 
-    const answer = await promptUser(
-      `Use part list "${defaultName}" (ID: ${defaultPartListId})? [Y/n/c]: `
-    );
+    const selection = await promptUser('Select a part list (number): ');
+    const selectedIndex = parseInt(selection, 10);
 
-    if (answer.toLowerCase() === 'y' || answer === '') {
-      this.partListId = defaultPartListId!;
-    } else if (answer.toLowerCase() === 'n') {
-      // Let user select from existing part lists
-      console.log('Available part lists:');
-      partLists.forEach((list, index) => {
-        console.log(`${index + 1}. ${list.name} (ID: ${list.id})`);
-      });
-
-      const selection = await promptUser('Select a part list (number): ');
-      const selectedIndex = parseInt(selection, 10) - 1;
-      if (selectedIndex >= 0 && selectedIndex < partLists.length) {
-        this.partListId = partLists[selectedIndex].id.toString();
-        config.lastPartListId = this.partListId;
-        saveConfig(config);
-      } else {
-        console.log('Invalid selection. Using default part list.');
-        this.partListId = defaultPartListId!;
-      }
-    } else if (answer.toLowerCase() === 'c') {
+    if (selectedIndex === 0) {
       // Create a new part list
       const name = await promptUser('Enter name for new part list: ');
       const newList = await this.client.createPartList(name);
@@ -73,9 +70,16 @@ export class RebrickableWrapper {
       config.lastPartListId = this.partListId;
       saveConfig(config);
       console.log(`Created new part list: ${newList.name} (ID: ${this.partListId})`);
+    } else if (selectedIndex > 0 && selectedIndex <= partLists.length) {
+      // Select existing part list
+      this.partListId = partLists[selectedIndex - 1].id.toString();
+      config.lastPartListId = this.partListId;
+      saveConfig(config);
     } else {
-      console.log('Invalid input. Using default part list.');
-      this.partListId = defaultPartListId!;
+      console.log('Invalid selection. Using first part list.');
+      this.partListId = partLists[0].id.toString();
+      config.lastPartListId = this.partListId;
+      saveConfig(config);
     }
   }
 

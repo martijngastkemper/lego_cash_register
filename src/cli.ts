@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name('lego-scan')
   .description('Scan LEGO parts continuously and add to Rebrickable (macOS only)')
-  .requiredOption('--rebrickable-key <key>', 'Rebrickable API key (or set REBRICKABLE_API_KEY)')
+  .option('--rebrickable-key <key>', 'Rebrickable API key (or set REBRICKABLE_API_KEY)')
   .option('--rebrickable-user <user>', 'Rebrickable username (or set REBRICKABLE_USER)')
   .option('--rebrickable-password <password>', 'Rebrickable password (or set REBRICKABLE_PASSWORD)')
   .option('--dry-run', 'Scan without adding to Rebrickable');

@@ -1,11 +1,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { RebrickableClient, type Color } from 'rebrickable-api-client';
+import { RebrickableClient, type Paginated, type Color } from 'rebrickable-api-client';
 
 const CACHE_DIR = path.join(process.env.HOME || '', '.lego-scan');
 const CACHE_FILE = path.join(CACHE_DIR, 'colors.json');
 
 let colorCache: Color[] | null = null;
+
+async function fetchAllColors(apiKey: string): Promise<Color[]> {
+  const client = new RebrickableClient({ apiKey });
+  let allColors: Color[] = [];
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response: Paginated<Color> = await client.listColors({ page, pageSize: 1000 });
+    allColors = allColors.concat(response.results);
+    hasMore = response.next !== null;
+    page++;
+  }
+
+  return allColors;
+}
 
 export async function loadColorCache(apiKey: string): Promise<Color[]> {
   if (colorCache) return colorCache;
@@ -16,29 +32,27 @@ export async function loadColorCache(apiKey: string): Promise<Color[]> {
     return cached;
   }
 
-  const client = new RebrickableClient({ apiKey });
-  const { results } = await client.listColors();
-  colorCache = results as Color[];
+  const colors = await fetchAllColors(apiKey);
+  colorCache = colors;
 
   if (!fs.existsSync(CACHE_DIR)) {
     fs.mkdirSync(CACHE_DIR, { recursive: true });
   }
-  fs.writeFileSync(CACHE_FILE, JSON.stringify(results, null, 2));
+  fs.writeFileSync(CACHE_FILE, JSON.stringify(colors, null, 2));
 
-  return results as Color[];
+  return colors;
 }
 
 export async function refreshColorCache(apiKey: string): Promise<Color[]> {
-  const client = new RebrickableClient({ apiKey });
-  const { results } = await client.listColors();
-  colorCache = results as Color[];
+  const colors = await fetchAllColors(apiKey);
+  colorCache = colors;
 
   if (!fs.existsSync(CACHE_DIR)) {
     fs.mkdirSync(CACHE_DIR, { recursive: true });
   }
-  fs.writeFileSync(CACHE_FILE, JSON.stringify(results, null, 2));
+  fs.writeFileSync(CACHE_FILE, JSON.stringify(colors, null, 2));
 
-  return results as Color[];
+  return colors;
 }
 
 export function findColorId(colorName: string, colors: Color[]): number | null {

@@ -109,11 +109,11 @@ export class RebrickableWrapper {
   }
 
   async resolveColorId(colorName: string): Promise<number | null> {
+    // Use the color name to find the correct Rebrickable color ID
     const colorId = findColorId(colorName, this.colors);
-    if (colorId !== null) {
-      // Map Brickognize color ID 0 (Black) to Rebrickable color ID 1 (Black)
-      return colorId === 0 ? 1 : colorId;
-    }
+    if (colorId !== null) return colorId;
+    
+    // If color not found in cache, prompt the user
     const userInput = await promptUser(`Color "${colorName}" not found. Enter Rebrickable color ID (or 'skip' to skip): `);
     if (userInput.toLowerCase() === 'skip') {
       return null;

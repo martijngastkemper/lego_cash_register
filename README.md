@@ -36,7 +36,7 @@ brew install imagesnap
 ```bash
 git clone <repository-url>
 cd lego_cash_register
-npm install
+pnpm install
 ```
 
 ### 3. Configure API Keys

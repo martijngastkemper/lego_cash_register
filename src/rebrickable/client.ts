@@ -95,21 +95,12 @@ export class RebrickableWrapper {
       await this.client.getPart(partId);
       return partId;
     } catch (error: any) {
-      const isNotFound = 
-        error.message?.includes('404') ||
-        error.message?.includes('Not Found') ||
-        error.status === 404 ||
-        error.response?.status === 404;
-      
-      if (isNotFound) {
-        const name = partName || partId;
-        console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId})`);
-        console.error('This part may have moved during scanning. Try scanning again.');
-        console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
-        return promptUser(`Enter Rebrickable part ID for ${name}: `);
-      }
-      // For other errors, re-throw
-      throw error;
+      // Always prompt the user if the part is not found, regardless of error type
+      const name = partName || partId;
+      console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId})`);
+      console.error('This part may have moved during scanning. Try scanning again.');
+      console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
+      return promptUser(`Enter Rebrickable part ID for ${name}: `);
     }
   }
 

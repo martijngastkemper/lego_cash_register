@@ -49,9 +49,16 @@ To make it persistent, add it to your shell config (e.g., `~/.zshrc` or `~/.bash
 
 ## Usage
 
-### Start Continuous Scanning
+### Build the Project
+Before running the tool, build it:
 ```bash
-lego-scan scan --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
+pnpm run build
+```
+
+### Start Continuous Scanning
+Run the tool using `node`:
+```bash
+node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
 ```
 - The camera will open, and you can press **Enter** to capture an image.
 - The tool will detect the part and add it to a temporary list.
@@ -59,14 +66,14 @@ lego-scan scan --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-passwo
 
 ### Dry Run (Scan Without Uploading)
 ```bash
-lego-scan scan --dry-run
+node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --dry-run
 ```
 - Scans parts but does **not** add them to Rebrickable.
 - Useful for testing or verifying part detection.
 
 ### Refresh Color Cache
 ```bash
-lego-scan refresh-colors
+node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ```
 - Updates the local cache of Rebrickable colors.
 - Run this if you encounter missing color errors.

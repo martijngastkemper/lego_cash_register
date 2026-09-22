@@ -95,7 +95,7 @@ export class RebrickableWrapper {
       await this.client.getPart(partId);
       return partId;
     } catch (error: any) {
-      if (error.message?.includes('404')) {
+      if (error.message?.includes('404') || error.message?.includes('Not Found')) {
         const name = partName || partId;
         console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId})`);
         console.error('This part may have moved during scanning. Try scanning again.');
@@ -118,13 +118,8 @@ export class RebrickableWrapper {
       throw new Error('Part list not selected. Call selectPartList() first.');
     }
 
-    try {
-      const resolvedPartId = await this.resolvePartId(partId, partName);
-      const resolvedColorId = await this.resolveColorId(colorName);
-      await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
-    } catch (error) {
-      console.error(`Failed to add part ${partId}:`, error);
-      throw error;
-    }
+    const resolvedPartId = await this.resolvePartId(partId, partName);
+    const resolvedColorId = await this.resolveColorId(colorName);
+    await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
   }
 }

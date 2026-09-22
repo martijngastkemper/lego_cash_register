@@ -19,7 +19,9 @@ export async function startContinuousScanning(
 
   process.on('SIGINT', async () => {
     console.log('\nStopping...');
-    await finalizePartsList(partsList, rebrickable, dryRun);
+    if (dryRun) {
+      await finalizePartsList(partsList);
+    }
     cleanupTempFiles();
     process.exit(0);
   });
@@ -30,7 +32,9 @@ export async function startContinuousScanning(
     });
 
     if (input.toLowerCase() === 'q') {
-      await finalizePartsList(partsList, rebrickable, dryRun);
+      if (dryRun) {
+        await finalizePartsList(partsList);
+      }
       cleanupTempFiles();
       rl.close();
       break;
@@ -40,41 +44,28 @@ export async function startContinuousScanning(
       const imagePath = await captureImage();
       const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
 
-      partsList.push(scannedPart);
-      console.log(`Detected: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
-      console.log(`Added to parts list. Total parts scanned: ${partsList.length}`);
+      if (dryRun) {
+        partsList.push(scannedPart);
+        console.log(`Detected: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+        console.log(`Total parts scanned: ${partsList.length}`);
+      } else {
+        await rebrickable.addPart(scannedPart.partId, scannedPart.colorName);
+        console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+      }
     } catch (error) {
       console.error('Error scanning part:', error);
     }
   }
 }
 
-async function finalizePartsList(
-  partsList: ScannedPart[],
-  rebrickable: RebrickableWrapper,
-  dryRun: boolean
-): Promise<void> {
-  if (dryRun) {
-    console.log('\nDry run. Parts list:');
-    partsList.forEach((part) => {
-      console.log(`- ${part.name} (ID: ${part.partId}, Color: ${part.colorName})`);
-    });
-    return;
-  }
-
+async function finalizePartsList(partsList: ScannedPart[]): Promise<void> {
   if (partsList.length === 0) {
     console.log('No parts scanned.');
     return;
   }
 
-  console.log('\nFinalizing parts list...');
-  for (const part of partsList) {
-    try {
-      await rebrickable.addPart(part.partId, part.colorName);
-      console.log(`Added to Rebrickable: ${part.name}`);
-    } catch (error) {
-      console.error(`Failed to add ${part.name} to Rebrickable:`, error);
-    }
-  }
-  console.log('Parts list finalized.');
+  console.log('\nDry run. Parts list:');
+  partsList.forEach((part) => {
+    console.log(`- ${part.name} (ID: ${part.partId}, Color: ${part.colorName})`);
+  });
 }

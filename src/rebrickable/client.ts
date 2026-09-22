@@ -107,11 +107,16 @@ export class RebrickableWrapper {
 
   async addPart(partId: string, colorName: string): Promise<void> {
     if (!this.partListId) {
-      await this.selectPartList();
+      throw new Error('Part list not selected. Call selectPartList() first.');
     }
-    const resolvedPartId = await this.resolvePartId(partId);
-    const resolvedColorId = await this.resolveColorId(colorName);
-    if (!this.partListId) throw new Error('Part list ID is not set');
-    await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+
+    try {
+      const resolvedPartId = await this.resolvePartId(partId);
+      const resolvedColorId = await this.resolveColorId(colorName);
+      await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+    } catch (error) {
+      console.error(`Failed to add part ${partId}:`, error);
+      throw error;
+    }
   }
 }

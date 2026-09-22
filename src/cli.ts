@@ -36,6 +36,9 @@ program
       rebrickable.client.setUserToken(user_token);
     }
 
+    // Select part list interactively
+    await rebrickable.selectPartList();
+
     const brickognize = new BrickognizeClient();
     await startContinuousScanning(rebrickable, brickognize, options.dryRun);
   });

@@ -98,7 +98,8 @@ export class RebrickableWrapper {
       const isNotFound = 
         error.message?.includes('404') ||
         error.message?.includes('Not Found') ||
-        error.status === 404;
+        error.status === 404 ||
+        error.response?.status === 404;
       
       if (isNotFound) {
         const name = partName || partId;
@@ -107,6 +108,7 @@ export class RebrickableWrapper {
         console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
         return promptUser(`Enter Rebrickable part ID for ${name}: `);
       }
+      // For other errors, re-throw
       throw error;
     }
   }

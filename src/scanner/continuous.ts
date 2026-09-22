@@ -49,7 +49,7 @@ export async function startContinuousScanning(
         console.log(`Detected: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
         console.log(`Total parts scanned: ${partsList.length}`);
       } else {
-        await rebrickable.addPart(scannedPart.partId, scannedPart.colorName);
+        await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
         console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
       }
     } catch (error) {

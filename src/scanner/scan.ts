@@ -22,7 +22,7 @@ export async function scanSinglePart(
     colorName = colors[0].name;
   }
 
-  const resolvedPartId = await rebrickable.resolvePartId(partId);
+  const resolvedPartId = await rebrickable.resolvePartId(partId, name);
   const resolvedColorId = await rebrickable.resolveColorId(colorName);
 
   return {

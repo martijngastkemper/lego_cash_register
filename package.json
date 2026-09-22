@@ -1,0 +1,50 @@
+{
+  "name": "lego_cash_register",
+  "version": "1.0.0",
+  "description": "A **macOS-only** command-line tool to scan LEGO parts using your webcam and add them to your Rebrickable inventory. Powered by the Brickognize API for image recognition.",
+  "main": "dist/cli.js",
+  "bin": {
+    "lego-scan": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "lego",
+    "scanner",
+    "rebrickable",
+    "brickognize",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.5.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.5.1",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.20.0",
+    "commander": "^15.0.0",
+    "form-data": "^4.0.6",
+    "rebrickable-api-client": "link:/tmp/typescript-rebrickable-api-client",
+    "sharp": "^0.35.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@vitest/coverage-v8": "^5.0.1",
+    "vitest": "^5.0.1"
+  }
+}

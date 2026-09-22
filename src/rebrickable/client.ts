@@ -90,24 +90,31 @@ export class RebrickableWrapper {
     return this.colors;
   }
 
-  async resolvePartId(partId: string, partName?: string): Promise<string> {
+  async resolvePartId(partId: string, partName?: string): Promise<string | null> {
     try {
       await this.client.getPart(partId);
       return partId;
     } catch (error: any) {
-      // Always prompt the user if the part is not found, regardless of error type
+      // Always prompt the user if the part is not found
       const name = partName || partId;
       console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId})`);
       console.error('This part may have moved during scanning. Try scanning again.');
       console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
-      return promptUser(`Enter Rebrickable part ID for ${name}: `);
+      const userInput = await promptUser(`Enter Rebrickable part ID for ${name} (or 'skip' to skip): `);
+      if (userInput.toLowerCase() === 'skip') {
+        return null; // Signal to skip this part
+      }
+      return userInput;
     }
   }
 
-  async resolveColorId(colorName: string): Promise<number> {
+  async resolveColorId(colorName: string): Promise<number | null> {
     const colorId = findColorId(colorName, this.colors);
     if (colorId !== null) return colorId;
-    const userInput = await promptUser(`Color "${colorName}" not found. Enter Rebrickable color ID: `);
+    const userInput = await promptUser(`Color "${colorName}" not found. Enter Rebrickable color ID (or 'skip' to skip): `);
+    if (userInput.toLowerCase() === 'skip') {
+      return null;
+    }
     return parseInt(userInput, 10);
   }
 
@@ -117,7 +124,15 @@ export class RebrickableWrapper {
     }
 
     const resolvedPartId = await this.resolvePartId(partId, partName);
+    if (resolvedPartId === null) {
+      return; // Skip this part
+    }
+
     const resolvedColorId = await this.resolveColorId(colorName);
+    if (resolvedColorId === null) {
+      return; // Skip this part
+    }
+
     await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
   }
 }

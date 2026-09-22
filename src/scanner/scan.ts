@@ -13,7 +13,7 @@ export async function scanSinglePart(
   imagePath: string,
   rebrickable: RebrickableWrapper,
   brickognize: BrickognizeClient
-): Promise<ScannedPart> {
+): Promise<ScannedPart | null> {
   const { items, colors } = await brickognize.predictPart(imagePath);
   const { id: partId, name } = items[0];
 
@@ -23,7 +23,14 @@ export async function scanSinglePart(
   }
 
   const resolvedPartId = await rebrickable.resolvePartId(partId, name);
+  if (resolvedPartId === null) {
+    return null; // Skip this part
+  }
+
   const resolvedColorId = await rebrickable.resolveColorId(colorName);
+  if (resolvedColorId === null) {
+    return null; // Skip this part
+  }
 
   return {
     partId: resolvedPartId,

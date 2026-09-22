@@ -44,6 +44,11 @@ export async function startContinuousScanning(
       const imagePath = await captureImage();
       const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
 
+      if (!scannedPart) {
+        console.log('Part skipped.');
+        continue;
+      }
+
       if (dryRun) {
         partsList.push(scannedPart);
         console.log(`Detected: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);

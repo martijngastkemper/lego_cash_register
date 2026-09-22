@@ -46,5 +46,5 @@ export function findColorId(colorName: string, colors: Color[]): number | null {
   const color = colors.find(
     (c) => c.name.toLowerCase().trim() === normalized
   );
-  return color?.id || null;
+  return color?.id ?? null;
 }

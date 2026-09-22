@@ -20,7 +20,7 @@ A **macOS-only** command-line tool to scan LEGO parts using your webcam and add 
 - **Node.js 18+**
 - **[Homebrew](https://brew.sh/)** (to install `imagesnap`)
 - **API Keys**:
-  - [Rebrickable API Key](https://rebrickable.com/api/) (set as `REBRICKABLE_API_KEY`)
+  - [Rebrickable API Key](https://rebrickable.com/api/)
 
 ---
 
@@ -38,12 +38,16 @@ cd lego_cash_register
 pnpm install
 ```
 
-### 3. Configure API Keys
-Set your Rebrickable API key as an environment variable:
+### 3. Configure Environment Variables
+Set the following environment variables:
 ```bash
 export REBRICKABLE_API_KEY="your_rebrickable_api_key"
+export REBRICKABLE_USER="your_rebrickable_username"
+export REBRICKABLE_PASSWORD="your_rebrickable_password"
 ```
-To make it persistent, add it to your shell config (e.g., `~/.zshrc` or `~/.bashrc`).
+To make them persistent, add them to your shell config (e.g., `~/.zshrc` or `~/.bashrc`).
+
+**Note**: You can also pass these values as CLI options instead of environment variables.
 
 ---
 

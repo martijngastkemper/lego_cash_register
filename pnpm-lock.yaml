@@ -176,8 +176,8 @@ importers:
         specifier: ^4.0.6
         version: 4.0.6
       rebrickable-api-client:
-        specifier: link:/tmp/typescript-rebrickable-api-client
-        version: link:../../../../tmp/typescript-rebrickable-api-client
+        specifier: ^0.4.1
+        version: 0.4.1
       sharp:
         specifier: ^0.35.4
         version: 0.35.4(@types/node@26.6.2)
@@ -962,6 +962,10 @@ packages:
     resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
     engines: {node: '>=10'}
 
+  rebrickable-api-client@0.4.1:
+    resolution: {integrity: sha512-vynCHEwmWTt40CPzpMLQeQCd8hfwad855MpXin6CajPTU6xsYiKe0noODjnMX+eI9iCzMFpTfYj8M2ZH6L2jVQ==}
+    engines: {node: '>=18'}
+
   rolldown@1.2.9:
     resolution: {integrity: sha512-hx/Pv0N1haXRb11qkfnK5MXB/iqr7i0yjWQqmO9uHqZpBgQSqzc8UsSnEpalsh+j1I8qQ2CkXAkJC8Br3dKSlg==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -1670,6 +1674,8 @@ snapshots:
       source-map-js: 1.2.1
 
   proxy-from-env@2.1.0: {}
+
+  rebrickable-api-client@0.4.1: {}
 
   rolldown@1.2.9:
     dependencies:

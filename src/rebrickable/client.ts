@@ -1,7 +1,8 @@
-import { RebrickableClient as RebrickableApiClient, type Color, type ListResult } from 'rebrickable-api-client';
+import { RebrickableClient as RebrickableApiClient, type Color, type ListResult, type Part } from 'rebrickable-api-client';
 import { loadColorCache, refreshColorCache, findColorId } from './colorCache.js';
 import { promptUser } from '../utils/prompt.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
+import { stripPartIdSuffix } from '../utils/partId.js';
 
 export class RebrickableWrapper {
   public client: RebrickableApiClient;
@@ -90,19 +91,63 @@ export class RebrickableWrapper {
     return this.colors;
   }
 
+  async searchPartsByPrefix(prefix: string): Promise<Array<{ id: string; name: string }>> {
+    try {
+      const { results } = await this.client.listParts({ search: prefix });
+      return results.map((part: Part) => ({ id: part.part_num, name: part.name }));
+    } catch (error: any) {
+      console.error('Error searching for parts:', error);
+      return [];
+    }
+  }
+
+  async promptForPartSelection(
+    parts: Array<{ id: string; name: string }>,
+    originalPartId: string
+  ): Promise<string | null> {
+    console.error(`\nMultiple parts match the prefix "${originalPartId}":`);
+    parts.forEach((part, index) => {
+      console.error(`${index + 1}. ${part.name} (ID: ${part.id}) - https://rebrickable.com/parts/${part.id}/`);
+    });
+    const selection = await promptUser(`Select a part (number, or 'skip' to skip): `);
+    if (selection.toLowerCase() === 'skip') {
+      return null;
+    }
+    const selectedIndex = parseInt(selection, 10) - 1;
+    if (selectedIndex >= 0 && selectedIndex < parts.length) {
+      return parts[selectedIndex].id;
+    }
+    return null;
+  }
+
   async resolvePartId(partId: string, partName?: string): Promise<string | null> {
     try {
       await this.client.getPart(partId);
       return partId;
     } catch (error: any) {
-      // Always prompt the user if the part is not found
+      // Strip suffix and try again
+      const strippedPartId = stripPartIdSuffix(partId);
+      if (strippedPartId !== partId) {
+        try {
+          await this.client.getPart(strippedPartId);
+          return strippedPartId;
+        } catch (error: any) {
+          // If stripped ID also fails, search for parts with the numeric prefix
+          const matchingParts = await this.searchPartsByPrefix(strippedPartId);
+          if (matchingParts.length > 0) {
+            return this.promptForPartSelection(matchingParts, partId);
+          }
+        }
+      }
+
+      // If no matches found, prompt the user
       const name = partName || partId;
       console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId})`);
       console.error('This part may have moved during scanning. Try scanning again.');
       console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
       const userInput = await promptUser(`Enter Rebrickable part ID for ${name} (or 'skip' to skip): `);
       if (userInput.toLowerCase() === 'skip') {
-        return null; // Signal to skip this part
+        return null;
       }
       return userInput;
     }

@@ -120,7 +120,7 @@ export class RebrickableWrapper {
     return null;
   }
 
-  async resolvePartId(partId: string, partName?: string): Promise<string | null> {
+  async resolvePartId(partId: string, partName?: string, colorName?: string): Promise<string | null> {
     try {
       await this.client.getPart(partId);
       return partId;
@@ -142,7 +142,8 @@ export class RebrickableWrapper {
 
       // If no matches found, prompt the user
       const name = partName || partId;
-      console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId})`);
+      const colorInfo = colorName ? ` (Color: ${colorName})` : '';
+      console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId}${colorInfo})`);
       console.error('This part may have moved during scanning. Try scanning again.');
       console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
       const userInput = await promptUser(`Enter Rebrickable part ID for ${name} (or 'skip' to skip): `);
@@ -183,7 +184,7 @@ export class RebrickableWrapper {
       throw new Error('Part list not selected. Call selectPartList() first.');
     }
 
-    const resolvedPartId = await this.resolvePartId(partId, partName);
+    const resolvedPartId = await this.resolvePartId(partId, partName, colorName);
     if (resolvedPartId === null) {
       return; // Skip this part
     }

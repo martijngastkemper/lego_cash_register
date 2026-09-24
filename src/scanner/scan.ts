@@ -21,17 +21,17 @@ export async function scanSinglePart(
     return null;
   }
 
-  const { id: partId, name } = items[0];
+   const { id: partId, name } = items[0];
 
-  let colorName = 'Unknown';
-  if (colors && colors.length > 0) {
-    colorName = colors[0].name;
-  }
+   let colorName = 'Unknown';
+   if (colors && colors.length > 0) {
+     colorName = colors[0].name;
+   }
 
-  const resolvedPartId = await rebrickable.resolvePartId(partId, name);
-  if (resolvedPartId === null) {
-    return null; // Skip this part
-  }
+   const resolvedPartId = await rebrickable.resolvePartId(partId, name, colorName);
+   if (resolvedPartId === null) {
+     return null; // Skip this part
+   }
 
   const resolvedColorId = await rebrickable.resolveColorId(colorName);
   if (resolvedColorId === null) {

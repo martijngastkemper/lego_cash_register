@@ -8,7 +8,6 @@ export class RebrickableWrapper {
   public client: RebrickableApiClient;
   private colors: Color[] = [];
   private partListId: string | null = null;
-  private partListCache: Map<string, UserPart> = new Map();
 
   constructor(apiKey: string, userToken?: string) {
     this.client = new RebrickableApiClient({ apiKey, userToken });
@@ -50,8 +49,6 @@ export class RebrickableWrapper {
 
       if (answer.toLowerCase() === 'y' || answer === '') {
         this.partListId = defaultPartListId;
-        // Load existing parts into cache
-        await this.loadPartListCache();
         return;
       }
     }
@@ -79,29 +76,11 @@ export class RebrickableWrapper {
       this.partListId = partLists[selectedIndex - 1].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      // Load existing parts into cache
-      await this.loadPartListCache();
     } else {
       console.log('Invalid selection. Using first part list.');
       this.partListId = partLists[0].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      // Load existing parts into cache
-      await this.loadPartListCache();
-    }
-  }
-
-  async loadPartListCache(): Promise<void> {
-    if (!this.partListId) return;
-    try {
-      const { results } = await this.client.listPartListParts(this.partListId);
-      this.partListCache.clear();
-      for (const part of results) {
-        const cacheKey = `${part.part.part_num}:${part.color.id}`;
-        this.partListCache.set(cacheKey, part);
-      }
-    } catch (error: any) {
-      console.error('Error loading part list cache:', error);
     }
   }
 
@@ -187,6 +166,18 @@ export class RebrickableWrapper {
     return parseInt(userInput, 10);
   }
 
+  async findPartInList(partId: string, colorId: number): Promise<UserPart | null> {
+    try {
+      const { results } = await this.client.listPartListParts(this.partListId!);
+      return results.find(
+        (part: UserPart) => part.part.part_num === partId && part.color.id === colorId
+      ) ?? null;
+    } catch (error: any) {
+      console.error('Error checking part in list:', error);
+      return null;
+    }
+  }
+
   async addPart(partId: string, colorName: string, partName?: string): Promise<void> {
     if (!this.partListId) {
       throw new Error('Part list not selected. Call selectPartList() first.');
@@ -202,25 +193,21 @@ export class RebrickableWrapper {
       return; // Skip this part
     }
 
-    const cacheKey = `${resolvedPartId}:${resolvedColorId}`;
-    const existingPart = this.partListCache.get(cacheKey);
-
     try {
+      // First try to fetch the existing part from the list
+      const existingPart = await this.findPartInList(resolvedPartId, resolvedColorId);
+      
       if (existingPart) {
-        // Update quantity of existing part
+        // Part exists: update quantity with PATCH
         await this.client.updatePartListPart(
           this.partListId,
           resolvedPartId,
           resolvedColorId,
           { quantity: existingPart.quantity + 1 }
         );
-        // Update cache
-        this.partListCache.set(cacheKey, { ...existingPart, quantity: existingPart.quantity + 1 });
       } else {
-        // Add new part to the list
-        const newPart = await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
-        // Update cache
-        this.partListCache.set(cacheKey, newPart);
+        // Part doesn't exist: create with POST
+        await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
       }
     } catch (error: any) {
       // Improve error message with resolved part/color IDs

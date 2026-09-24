@@ -29,14 +29,14 @@ describe('rebrickable/colorCache', () => {
       expect(colorId).toBe(1);
     });
 
-     it('should return 1 for Black color (workaround for Rebrickable API bug)', () => {
+     it('should return 0 for Black color', () => {
        const colorId = findColorId('Black', mockColors);
-       expect(colorId).toBe(1);
+       expect(colorId).toBe(0);
      });
 
-     it('should return 1 for black color (case-insensitive, workaround for Rebrickable API bug)', () => {
+     it('should return 0 for black color (case-insensitive)', () => {
        const colorId = findColorId('black', mockColors);
-       expect(colorId).toBe(1);
+       expect(colorId).toBe(0);
      });
   });
 });

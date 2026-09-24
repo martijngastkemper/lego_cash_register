@@ -60,9 +60,5 @@ export function findColorId(colorName: string, colors: Color[]): number | null {
   const color = colors.find(
     (c) => c.name.toLowerCase().trim() === normalized
   );
-  // Workaround for Rebrickable API bug: Black is sometimes returned as ID 0, but should be 1
-  if (color?.id === 0 && normalized === 'black') {
-    return 1;
-  }
   return color?.id ?? null;
 }

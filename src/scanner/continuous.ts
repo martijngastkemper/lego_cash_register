@@ -55,8 +55,80 @@ export async function startContinuousScanning(
   // Buffer for repeat count input (e.g. "3" before "r" means repeat 3 times)
   let repeatCountInput = '';
 
+  // Serialize Rebrickable mutations so concurrent keypresses cannot
+  // interleave read-modify-write operations on part quantities
+  let operationQueue: Promise<void> = Promise.resolve();
+  function enqueueOperation(task: () => Promise<void>): void {
+    operationQueue = operationQueue.then(task).catch((error) => {
+      printError(`\n❌ Unexpected error: ${error}`);
+    });
+  }
+
+  async function runRepeat(count: number): Promise<void> {
+    if (!lastScannedPart) {
+      return; // Nothing to repeat
+    }
+
+    try {
+      const added = await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
+      if (added) undoStack.push(added);
+      printLine(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
+      playBeep();
+    } catch (error) {
+      printError(`\n❌ Error repeating part: ${error}`);
+    }
+    showPrompt();
+  }
+
+  async function runUndo(): Promise<void> {
+    const lastAdd = undoStack.pop();
+
+    if (!lastAdd) {
+      printLine('\n⚠️ Nothing to undo.');
+      showPrompt();
+      return;
+    }
+
+    try {
+      const undone = await rebrickable.undoAdd(lastAdd);
+      if (undone) {
+        printLine(`\n🔙 Undid: ${lastAdd.name} (Part: ${lastAdd.partId}, Color: ${lastAdd.colorName})${lastAdd.quantity > 1 ? ` (x${lastAdd.quantity})` : ''}`);
+      } else {
+        printError(`\n⚠️ Could not undo: ${lastAdd.name} (Part: ${lastAdd.partId}) is no longer in the part list.`);
+      }
+    } catch (error) {
+      // Restore the stack entry so the undo can be retried
+      undoStack.push(lastAdd);
+      printError(`\n❌ Error undoing: ${error}`);
+    }
+    showPrompt();
+  }
+
+  async function runScan(): Promise<void> {
+    try {
+      const imagePath = await captureImage();
+      const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
+
+      if (!scannedPart) {
+        printLine('\n⚠️ Part skipped.');
+        showPrompt();
+        return;
+      }
+
+      lastScannedPart = scannedPart;
+
+      const added = await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
+      if (added) undoStack.push(added);
+      printLine(`\n✅ Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+      playBeep();
+    } catch (error) {
+      printError(`\n❌ Error scanning part: ${error}`);
+    }
+    showPrompt();
+  }
+
   // Handle keypress events
-  process.stdin.on('data', async (key: Buffer) => {
+  process.stdin.on('data', (key: Buffer) => {
     const input = key.toString();
     const { action, repeatCountInput: nextBuffer } = decodeScanKey(input, repeatCountInput);
     repeatCountInput = nextBuffer;
@@ -78,65 +150,17 @@ export async function startContinuousScanning(
       if (!lastScannedPart) {
         return; // Nothing to repeat; the prompt is still on screen
       }
-
-      try {
-        const added = await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, action.count);
-        if (added) undoStack.push(added);
-        printLine(`\n🔁 Added to Rebrickable again${action.count > 1 ? ` (x${action.count})` : ''}`);
-        playBeep();
-      } catch (error) {
-        printError(`\n❌ Error repeating part: ${error}`);
-      }
-      showPrompt();
+      enqueueOperation(() => runRepeat(action.count));
       return;
     }
 
     if (action.type === 'undo') {
-      const lastAdd = undoStack.pop();
-
-      if (!lastAdd) {
-        printLine('\n⚠️ Nothing to undo.');
-        showPrompt();
-        return;
-      }
-
-      try {
-        const undone = await rebrickable.undoAdd(lastAdd);
-        if (undone) {
-          printLine(`\n🔙 Undid: ${lastAdd.name} (Part: ${lastAdd.partId}, Color: ${lastAdd.colorName})${lastAdd.quantity > 1 ? ` (x${lastAdd.quantity})` : ''}`);
-        } else {
-          printError(`\n⚠️ Could not undo: ${lastAdd.name} (Part: ${lastAdd.partId}) is no longer in the part list.`);
-        }
-      } catch (error) {
-        // Restore the stack entry so the undo can be retried
-        undoStack.push(lastAdd);
-        printError(`\n❌ Error undoing: ${error}`);
-      }
-      showPrompt();
+      enqueueOperation(runUndo);
       return;
     }
 
     if (action.type === 'scan') {
-      try {
-        const imagePath = await captureImage();
-        const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
-
-        if (!scannedPart) {
-          printLine('\n⚠️ Part skipped.');
-          showPrompt();
-          return;
-        }
-
-        lastScannedPart = scannedPart;
-
-        const added = await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
-        if (added) undoStack.push(added);
-        printLine(`\n✅ Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
-        playBeep();
-      } catch (error) {
-        printError(`\n❌ Error scanning part: ${error}`);
-      }
-      showPrompt();
+      enqueueOperation(runScan);
     }
   });
 

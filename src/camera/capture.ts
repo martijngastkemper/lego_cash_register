@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import { promptUser } from '../utils/prompt.js';
 import { printLine, printInline, printError } from '../utils/output.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +21,7 @@ let selectedDevice: string | null = null;
 
 export async function listDevices(): Promise<string[]> {
   try {
-    const { stdout } = await execAsync('imagesnap -l');
+    const { stdout } = await execFileAsync('imagesnap', ['-l']);
     const lines = stdout.trim().split('\n');
     
     // Parse imagesnap -l output format:
@@ -109,9 +109,9 @@ export async function captureImage(): Promise<string> {
   const timestamp = Date.now();
   const imagePath = path.join(TEMP_DIR, `scan_${timestamp}.jpg`);
 
-  const deviceOption = selectedDevice ? `-d "${selectedDevice}"` : '';
+  const deviceArgs = selectedDevice ? ['-d', selectedDevice] : [];
   printInline('\n📸 Capturing image... ');
-  await execAsync(`imagesnap ${deviceOption} ${imagePath}`);
+  await execFileAsync('imagesnap', [...deviceArgs, imagePath]);
   printInline('Done.');
   return imagePath;
 }

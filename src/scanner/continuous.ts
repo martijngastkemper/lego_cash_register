@@ -5,6 +5,7 @@ import { captureImage, cleanupTempFiles } from '../camera/capture.js';
 import { RebrickableWrapper, AddedPart } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
 import { ScannedPart, scanSinglePart } from './scan.js';
+import { decodeScanKey } from './keyDecoder.js';
 import { setReadlineInterface, closeReadlineInterface, setRawMode } from '../utils/prompt.js';
 import { printLine, printInline, printError } from '../utils/output.js';
 
@@ -57,8 +58,10 @@ export async function startContinuousScanning(
   // Handle keypress events
   process.stdin.on('data', async (key: Buffer) => {
     const input = key.toString();
+    const { action, repeatCountInput: nextBuffer } = decodeScanKey(input, repeatCountInput);
+    repeatCountInput = nextBuffer;
 
-    if (input === 'q') {
+    if (action.type === 'quit') {
       setRawMode(false);
       printLine(''); // New line after quit
       closeReadlineInterface();
@@ -67,24 +70,19 @@ export async function startContinuousScanning(
       process.exit(0);
     }
 
-    // Accumulate digits for the repeat multiplier (e.g. "3r" repeats 3 times)
-    if (/^[0-9]$/.test(input)) {
-      repeatCountInput += input;
-      return;
+    if (action.type === 'accumulate' || action.type === 'ignore') {
+      return; // Prompt stays on screen
     }
 
-    if (input === 'r') {
-      const count = parseInt(repeatCountInput, 10) || 1;
-      repeatCountInput = '';
-
+    if (action.type === 'repeat') {
       if (!lastScannedPart) {
         return; // Nothing to repeat; the prompt is still on screen
       }
 
       try {
-        const added = await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
+        const added = await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, action.count);
         if (added) undoStack.push(added);
-        printLine(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
+        printLine(`\n🔁 Added to Rebrickable again${action.count > 1 ? ` (x${action.count})` : ''}`);
         playBeep();
       } catch (error) {
         printError(`\n❌ Error repeating part: ${error}`);
@@ -93,10 +91,7 @@ export async function startContinuousScanning(
       return;
     }
 
-    // Any other key resets the repeat count buffer
-    repeatCountInput = '';
-
-    if (input === 'u') {
+    if (action.type === 'undo') {
       const lastAdd = undoStack.pop();
 
       if (!lastAdd) {
@@ -121,7 +116,7 @@ export async function startContinuousScanning(
       return;
     }
 
-    if (input === '\r' || input === '\n') {
+    if (action.type === 'scan') {
       try {
         const imagePath = await captureImage();
         const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);

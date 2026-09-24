@@ -63,18 +63,18 @@ pnpm run build
 ### Link for Global Use (Optional)
 To use the `lego-scan` command from anywhere, you have several options:
 
-**Option 1: Create a shell alias** (recommended):
+**Option 1: Install globally with pnpm** (recommended, verified with pnpm 12):
+```bash
+pnpm add --global .
+```
+This creates a live link to this directory, so the command stays in sync after rebuilds. Remove it later with `pnpm remove --global lego_cash_register`.
+
+**Option 2: Create a shell alias**:
 ```bash
 # Add to your ~/.zshrc or ~/.bashrc
 echo 'alias lego-scan="node $(pwd)/dist/cli.js"' >> ~/.zshrc
 source ~/.zshrc
 ```
-
-**Option 2: Use pnpm link** (pnpm v8+):
-```bash
-pnpm link
-```
-Then use the full path or configure your shell to find the linked binary.
 
 **Option 3: Use pnpm exec**:
 ```bash

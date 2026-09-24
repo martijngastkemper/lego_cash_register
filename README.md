@@ -61,18 +61,32 @@ pnpm run build
 ```
 
 ### Link for Global Use (Optional)
-To use the `lego-scan` command globally:
+To use the `lego-scan` command from anywhere, you have several options:
+
+**Option 1: Create a shell alias** (recommended):
 ```bash
-pnpm link --global
+# Add to your ~/.zshrc or ~/.bashrc
+echo 'alias lego-scan="node $(pwd)/dist/cli.js"' >> ~/.zshrc
+source ~/.zshrc
 ```
-This creates a symlink so you can run `lego-scan` from anywhere.
+
+**Option 2: Use pnpm link** (pnpm v8+):
+```bash
+pnpm link
+```
+Then use the full path or configure your shell to find the linked binary.
+
+**Option 3: Use pnpm exec**:
+```bash
+pnpm exec node dist/cli.js scan --your-options
+```
 
 ### Start Continuous Scanning
 Run the tool using `node`:
 ```bash
 node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
 ```
-Or if you've linked it globally:
+Or if you've set up an alias (see above):
 ```bash
 lego-scan scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
 ```
@@ -85,7 +99,7 @@ lego-scan scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOU
 ```bash
 node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ```
-Or if you've linked it globally:
+Or if you've set up an alias (see above):
 ```bash
 lego-scan refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ```

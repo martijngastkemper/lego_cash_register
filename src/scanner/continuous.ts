@@ -3,7 +3,7 @@ import { captureImage, cleanupTempFiles } from '../camera/capture.js';
 import { RebrickableWrapper } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
 import { ScannedPart, scanSinglePart } from './scan.js';
-import { setReadlineInterface, closeReadlineInterface } from '../utils/prompt.js';
+import { setReadlineInterface, closeReadlineInterface, setRawMode } from '../utils/prompt.js';
 
 export async function startContinuousScanning(
   rebrickable: RebrickableWrapper,
@@ -21,13 +21,11 @@ export async function startContinuousScanning(
   console.log('Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.');
 
   // Set up raw mode for single-key input
-  process.stdin.setRawMode(true);
-  process.stdin.resume();
-  process.stdin.setEncoding('utf8');
+  setRawMode(true);
 
   process.on('SIGINT', async () => {
     console.log('\nStopping...');
-    process.stdin.setRawMode(false);
+    setRawMode(false);
     closeReadlineInterface();
     cleanupTempFiles();
     process.exit(0);
@@ -38,7 +36,7 @@ export async function startContinuousScanning(
     const input = key.toString();
 
     if (input === 'q') {
-      process.stdin.setRawMode(false);
+      setRawMode(false);
       closeReadlineInterface();
       cleanupTempFiles();
       rl.close();

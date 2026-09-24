@@ -64,9 +64,9 @@ export async function startContinuousScanning(
     if (input === 'r' && lastScannedPart) {
       try {
         await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
-        console.log(`\nAdded to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
+        console.log(`\n✅ Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
       } catch (error) {
-        console.error('\nError repeating part:', error);
+        console.error('\n❌ Error repeating part:', error);
       }
       showPrompt();
       return;
@@ -78,7 +78,7 @@ export async function startContinuousScanning(
         const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
 
         if (!scannedPart) {
-          console.log('\nPart skipped.');
+          console.log('\n⚠️ Part skipped.');
           showPrompt();
           return;
         }
@@ -86,10 +86,10 @@ export async function startContinuousScanning(
         lastScannedPart = scannedPart;
 
         await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
-        console.log(`\nAdded to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+        console.log(`\n✅ Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
         playBeep();
       } catch (error) {
-        console.error('\nError scanning part:', error);
+        console.error('\n❌ Error scanning part:', error);
       }
       showPrompt();
     }

@@ -109,9 +109,9 @@ export async function captureImage(): Promise<string> {
   const imagePath = path.join(TEMP_DIR, `scan_${timestamp}.jpg`);
 
   const deviceOption = selectedDevice ? `-d "${selectedDevice}"` : '';
-  process.stdout.write('\nCapturing image... ');
+  process.stdout.write('\n📸 Capturing image... ');
   await execAsync(`imagesnap ${deviceOption} ${imagePath}`);
-  console.log('Done!');
+  console.log('✅ Done!');
   return imagePath;
 }
 

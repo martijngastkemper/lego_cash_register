@@ -145,15 +145,15 @@ lego-scan refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 $ lego-scan scan --rebrickable-user myuser --rebrickable-password mypass
 Press Enter to scan a part (or "r" to repeat, "q" to quit): 
 [press Enter]
-Capturing image... Done!
-Added to Rebrickable: Brick 2 x 4 (Part: 3001, Color: Red)
+📸 Capturing image... ✅ Done!
+✅ Added to Rebrickable: Brick 2 x 4 (Part: 3001, Color: Red)
 
 [press Enter]
-* Camera captures image *
-Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
+📸 Capturing image... ✅ Done!
+✅ Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
 [press r]
-Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
+✅ Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
 [press q]
 ```

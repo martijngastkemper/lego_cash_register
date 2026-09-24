@@ -182,7 +182,7 @@ export class RebrickableWrapper {
     }
   }
 
-  async addPart(partId: string, colorName: string, partName?: string): Promise<void> {
+  async addPart(partId: string, colorName: string, partName?: string, quantity: number = 1): Promise<void> {
     if (!this.partListId) {
       throw new Error('Part list not selected. Call selectPartList() first.');
     }
@@ -207,11 +207,11 @@ export class RebrickableWrapper {
           this.partListId,
           resolvedPartId,
           resolvedColorId,
-          { quantity: existingPart.quantity + 1 }
+          { quantity: existingPart.quantity + quantity }
         );
       } else {
         // Part doesn't exist: create with POST
-        await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+        await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, quantity);
       }
     } catch (error: any) {
       // Improve error message with resolved part/color IDs

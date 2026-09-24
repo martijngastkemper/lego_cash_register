@@ -93,6 +93,7 @@ lego-scan scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOU
   - The camera will open, and you can press **Enter** to capture an image.
   - The tool will detect the part and add it directly to your selected Rebrickable part list.
   - Press **`r`** to repeat the last scanned part (no Enter needed).
+  - Press **`<n>r`** to repeat multiple times, e.g. `3r` adds 3 of the last part (no Enter needed).
   - Press **`q`** to stop scanning (no Enter needed).
 
 ### Refresh Color Cache
@@ -143,7 +144,7 @@ lego-scan refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ### Example Session
 ```bash
 $ lego-scan scan --rebrickable-user myuser --rebrickable-password mypass
-Press Enter to scan a part (or "r" to repeat, "q" to quit): 
+Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "q" to quit): 
 [press Enter]
 📸 Capturing image... Done.
 ✅ Added to Rebrickable: Brick 2 x 4 (Part: 3001, Color: Red)
@@ -154,6 +155,9 @@ Press Enter to scan a part (or "r" to repeat, "q" to quit):
 
 [press r]
 🔁 Added to Rebrickable again
+
+[press 3 then r]
+🔁 Added to Rebrickable again (x3)
 
 [press q]
 ```

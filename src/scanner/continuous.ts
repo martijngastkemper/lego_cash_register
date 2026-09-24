@@ -42,11 +42,14 @@ export async function startContinuousScanning(
 
   // Function to show the prompt
   function showPrompt(): void {
-    process.stdout.write('Press Enter to scan a part (or "r" to repeat, "q" to quit): ');
+    process.stdout.write('Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "q" to quit): ');
   }
 
   // Show initial prompt
   showPrompt();
+
+  // Buffer for repeat count input (e.g. "3" before "r" means repeat 3 times)
+  let repeatCountInput = '';
 
   // Handle keypress events
   process.stdin.on('data', async (key: Buffer) => {
@@ -61,17 +64,31 @@ export async function startContinuousScanning(
       process.exit(0);
     }
 
-    if (input === 'r' && lastScannedPart) {
-      try {
-        await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
-        console.log('\n🔁 Added to Rebrickable again');
-        playBeep();
-      } catch (error) {
-        console.error('\n❌ Error repeating part:', error);
+    // Accumulate digits for the repeat multiplier (e.g. "3r" repeats 3 times)
+    if (/^[0-9]$/.test(input)) {
+      repeatCountInput += input;
+      return;
+    }
+
+    if (input === 'r') {
+      const count = parseInt(repeatCountInput, 10) || 1;
+      repeatCountInput = '';
+
+      if (lastScannedPart) {
+        try {
+          await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
+          console.log(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
+          playBeep();
+        } catch (error) {
+          console.error('\n❌ Error repeating part:', error);
+        }
       }
       showPrompt();
       return;
     }
+
+    // Any other key resets the repeat count buffer
+    repeatCountInput = '';
 
     if (input === '\r' || input === '\n') {
       try {

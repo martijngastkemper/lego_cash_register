@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { RebrickableWrapper } from './rebrickable/client.js';
 import { BrickognizeClient } from './brickognize/client.js';
 import { startContinuousScanning } from './scanner/continuous.js';
+import { selectDevice, setSelectedDevice, listDevices } from './camera/capture.js';
 
 const program = new Command();
 
@@ -38,6 +39,14 @@ program
       console.error('Set --rebrickable-user and --rebrickable-password or REBRICKABLE_USER and REBRICKABLE_PASSWORD.');
       process.exit(1);
     }
+
+    // Select camera device
+    const device = await selectDevice();
+    if (!device) {
+      process.exit(1);
+    }
+    setSelectedDevice(device);
+    console.log(`Using camera: ${device}`);
 
     // Select part list interactively
     await rebrickable.selectPartList();

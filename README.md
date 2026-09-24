@@ -46,10 +46,11 @@ export REBRICKABLE_API_KEY="your_rebrickable_api_key"
 export REBRICKABLE_USER="your_rebrickable_username"
 export REBRICKABLE_PASSWORD="your_rebrickable_password"
 export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
 ```
 To make them persistent, add them to your shell config (e.g., `~/.zshrc` or `~/.bashrc`).
 
-`XDG_CONFIG_HOME` is required: settings and the color cache are stored in `$XDG_CONFIG_HOME/lego-scan/`. There is no fallback location.
+Both XDG variables are required — there are no fallback locations. Settings are stored in `$XDG_CONFIG_HOME/lego-scan/`, the color cache in `$XDG_CACHE_HOME/lego-scan/`.
 
 **Note**: You can also pass these values as CLI options instead of environment variables.
 

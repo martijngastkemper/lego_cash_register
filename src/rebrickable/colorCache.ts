@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { RebrickableClient, type Paginated, type Color } from 'rebrickable-api-client';
-import { xdgConfigDir } from '../utils/xdg.js';
+import { xdgCacheDir } from '../utils/xdg.js';
 
 function colorCacheFilePath(): string {
-  return path.join(xdgConfigDir('lego-scan'), 'colors.json');
+  return path.join(xdgCacheDir('lego-scan'), 'colors.json');
 }
 
 let colorCache: Color[] | null = null;

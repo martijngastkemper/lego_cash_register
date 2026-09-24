@@ -1,5 +1,6 @@
 import { RebrickableWrapper } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
+import { printError } from '../utils/output.js';
 
 export interface ScannedPart {
   partId: string;
@@ -17,7 +18,7 @@ export async function scanSinglePart(
   const { items, colors } = await brickognize.predictPart(imagePath);
 
   if (!items || items.length === 0) {
-    console.error('\n❌ No parts detected in the image. Try again with a clearer image.');
+    printError('\n❌ No parts detected in the image. Try again with a clearer image.');
     return null;
   }
 

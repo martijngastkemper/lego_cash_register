@@ -1,6 +1,7 @@
 import { RebrickableClient as RebrickableApiClient, type Color, type ListResult, type Part, type UserPart, type Paginated } from 'rebrickable-api-client';
 import { loadColorCache, refreshColorCache, findColorId } from './colorCache.js';
 import { promptUser } from '../utils/prompt.js';
+import { printLine, printError } from '../utils/output.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
 import { stripPartIdSuffix } from '../utils/partId.js';
 
@@ -30,7 +31,7 @@ export class RebrickableWrapper {
       this.partListId = newList.id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      console.log(`Created new part list: ${newList.name} (ID: ${this.partListId})`);
+      printLine(`Created new part list: ${newList.name}`);
       return;
     }
 
@@ -44,21 +45,21 @@ export class RebrickableWrapper {
       const defaultName = defaultPartList?.name || partLists[0].name;
 
       const answer = await promptUser(
-        `Use part list "${defaultName}" (ID: ${defaultPartListId})? [Y/n]: `
+        `Use part list "${defaultName}"? [Y/n]: `
       );
 
       if (answer.toLowerCase() === 'y' || answer === '') {
         this.partListId = defaultPartListId;
-        console.log(`Using part list: ${defaultName}`);
+        printLine(`Using part list: ${defaultName}`);
         return;
       }
     }
 
     // Show list of part lists with option to create a new one
-    console.log('Available part lists:');
-    console.log('0. Create a new part list');
+    printLine('Available part lists:');
+    printLine('0. Create a new part list');
     partLists.forEach((list, index) => {
-      console.log(`${index + 1}. ${list.name} (ID: ${list.id})`);
+      printLine(`${index + 1}. ${list.name}`);
     });
 
     const selection = await promptUser('Select a part list (number): ');
@@ -71,19 +72,19 @@ export class RebrickableWrapper {
       this.partListId = newList.id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      console.log(`Created new part list: ${newList.name} (ID: ${this.partListId})`);
+      printLine(`Created new part list: ${newList.name}`);
     } else if (selectedIndex > 0 && selectedIndex <= partLists.length) {
       // Select existing part list
       this.partListId = partLists[selectedIndex - 1].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      console.log(`Using part list: ${partLists[selectedIndex - 1].name}`);
+      printLine(`Using part list: ${partLists[selectedIndex - 1].name}`);
     } else {
-      console.log('Invalid selection. Using first part list.');
+      printLine('Invalid selection. Using first part list.');
       this.partListId = partLists[0].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      console.log(`Using part list: ${partLists[0].name}`);
+      printLine(`Using part list: ${partLists[0].name}`);
     }
   }
 
@@ -99,7 +100,7 @@ export class RebrickableWrapper {
       const { results } = await this.client.listParts({ search: prefix, pageSize: 5 });
       return results.slice(0, 5).map((part: Part) => ({ id: part.part_num, name: part.name }));
     } catch (error: any) {
-      console.error('Error searching for parts:', error);
+      printError(`Error searching for parts: ${error}`);
       return [];
     }
   }
@@ -108,9 +109,9 @@ export class RebrickableWrapper {
     parts: Array<{ id: string; name: string }>,
     originalPartId: string
   ): Promise<string | null> {
-    console.error(`\nMultiple parts match the prefix "${originalPartId}":`);
+    printError(`\nMultiple parts match the prefix "${originalPartId}":`);
     parts.forEach((part, index) => {
-      console.error(`${index + 1}. ${part.name} (ID: ${part.id}) - https://rebrickable.com/parts/${part.id}/`);
+      printError(`${index + 1}. ${part.name} (ID: ${part.id}) - https://rebrickable.com/parts/${part.id}/`);
     });
     const selection = await promptUser(`Select a part (number, or 'skip' to skip): `);
     if (selection.toLowerCase() === 'skip') {
@@ -146,9 +147,9 @@ export class RebrickableWrapper {
       // If no matches found, prompt the user
       const name = partName || partId;
       const colorInfo = colorName ? ` (Color: ${colorName})` : '';
-      console.error(`\nPart not found in Rebrickable: ${name} (ID: ${partId}${colorInfo})`);
-      console.error('This part may have moved during scanning. Try scanning again.');
-      console.error('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
+      printError(`\nPart not found in Rebrickable: ${name} (ID: ${partId}${colorInfo})`);
+      printError('This part may have moved during scanning. Try scanning again.');
+      printError('Alternatively, search for the part manually at https://rebrickable.com/parts/ and enter the correct ID.');
       const userInput = await promptUser(`Enter Rebrickable part ID for ${name} (or 'skip' to skip): `);
       if (userInput.toLowerCase() === 'skip') {
         return null;
@@ -177,7 +178,7 @@ export class RebrickableWrapper {
         (part: UserPart) => part.part.part_num === partId && part.color.id === colorId
       ) ?? null;
     } catch (error: any) {
-      console.error('Error checking part in list:', error);
+      printError(`Error checking part in list: ${error}`);
       return null;
     }
   }

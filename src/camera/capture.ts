@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promptUser } from '../utils/prompt.js';
+import { printLine, printInline, printError } from '../utils/output.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
 
 const execAsync = promisify(exec);
@@ -42,7 +43,7 @@ export async function listDevices(): Promise<string[]> {
     }
     return devices;
   } catch (error: any) {
-    console.error('Error listing devices:', error.message);
+    printError(`Error listing devices: ${error.message}`);
     return [];
   }
 }
@@ -52,7 +53,7 @@ export async function selectDevice(): Promise<string | null> {
   const devices = await listDevices();
   
   if (devices.length === 0) {
-    console.error('No camera devices found. Please connect a camera.');
+    printError('No camera devices found. Please connect a camera.');
     return null;
   }
 
@@ -81,9 +82,9 @@ export async function selectDevice(): Promise<string | null> {
   }
 
   // Multiple devices: let user select
-  console.log('Available camera devices:');
+  printLine('Available camera devices:');
   devices.forEach((device: string, index: number) => {
-    console.log(`${index + 1}. ${device}`);
+    printLine(`${index + 1}. ${device}`);
   });
 
   const selection = await promptUser('Select a camera device (number): ');
@@ -97,7 +98,7 @@ export async function selectDevice(): Promise<string | null> {
     return selected;
   }
   
-  console.log('Invalid selection. Using first device.');
+  printLine('Invalid selection. Using first device.');
   const firstDevice = devices[0];
   config.lastDevice = firstDevice;
   saveConfig(config);
@@ -109,9 +110,9 @@ export async function captureImage(): Promise<string> {
   const imagePath = path.join(TEMP_DIR, `scan_${timestamp}.jpg`);
 
   const deviceOption = selectedDevice ? `-d "${selectedDevice}"` : '';
-  process.stdout.write('\n📸 Capturing image... ');
+  printInline('\n📸 Capturing image... ');
   await execAsync(`imagesnap ${deviceOption} ${imagePath}`);
-  process.stdout.write('Done.');
+  printInline('Done.');
   return imagePath;
 }
 

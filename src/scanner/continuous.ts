@@ -6,13 +6,14 @@ import { RebrickableWrapper } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
 import { ScannedPart, scanSinglePart } from './scan.js';
 import { setReadlineInterface, closeReadlineInterface, setRawMode } from '../utils/prompt.js';
+import { printLine, printInline, printError } from '../utils/output.js';
 
 const execAsync = promisify(exec);
 
 function playBeep(): void {
   // Try macOS osascript beep first, fall back to ASCII bell
   execAsync('osascript -e \'beep\'').catch(() => {
-    process.stdout.write('\x07');
+    printInline('\x07');
   });
 }
 
@@ -33,7 +34,7 @@ export async function startContinuousScanning(
   setRawMode(true);
 
   process.on('SIGINT', async () => {
-    console.log('\nStopping...');
+    printLine('\nStopping...');
     setRawMode(false);
     closeReadlineInterface();
     cleanupTempFiles();
@@ -42,7 +43,7 @@ export async function startContinuousScanning(
 
   // Function to show the prompt
   function showPrompt(): void {
-    process.stdout.write('Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "q" to quit): ');
+    printInline('Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "q" to quit): ');
   }
 
   // Show initial prompt
@@ -57,7 +58,7 @@ export async function startContinuousScanning(
 
     if (input === 'q') {
       setRawMode(false);
-      console.log(''); // New line after quit
+      printLine(''); // New line after quit
       closeReadlineInterface();
       cleanupTempFiles();
       rl.close();
@@ -80,10 +81,10 @@ export async function startContinuousScanning(
 
       try {
         await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
-        console.log(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
+        printLine(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
         playBeep();
       } catch (error) {
-        console.error('\n❌ Error repeating part:', error);
+        printError(`\n❌ Error repeating part: ${error}`);
       }
       showPrompt();
       return;
@@ -98,7 +99,7 @@ export async function startContinuousScanning(
         const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
 
         if (!scannedPart) {
-          console.log('\n⚠️ Part skipped.');
+          printLine('\n⚠️ Part skipped.');
           showPrompt();
           return;
         }
@@ -106,10 +107,10 @@ export async function startContinuousScanning(
         lastScannedPart = scannedPart;
 
         await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
-        console.log(`\n✅ Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+        printLine(`\n✅ Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
         playBeep();
       } catch (error) {
-        console.error('\n❌ Error scanning part:', error);
+        printError(`\n❌ Error scanning part: ${error}`);
       }
       showPrompt();
     }

@@ -5,6 +5,7 @@ import { RebrickableWrapper } from './rebrickable/client.js';
 import { BrickognizeClient } from './brickognize/client.js';
 import { startContinuousScanning } from './scanner/continuous.js';
 import { selectDevice, setSelectedDevice, listDevices } from './camera/capture.js';
+import { printLine, printError } from './utils/output.js';
 
 const program = new Command();
 
@@ -21,7 +22,7 @@ program
   .action(async (options) => {
     const rebrickableKey = options.rebrickableKey || process.env.REBRICKABLE_API_KEY;
     if (!rebrickableKey) {
-      console.error('Rebrickable API key is required. Set --rebrickable-key or REBRICKABLE_API_KEY.');
+      printError('Rebrickable API key is required. Set --rebrickable-key or REBRICKABLE_API_KEY.');
       process.exit(1);
     }
 
@@ -35,8 +36,8 @@ program
       const { user_token } = await rebrickable.client.getUserToken(user, password);
       rebrickable.client.setUserToken(user_token);
     } else {
-      console.error('Rebrickable username and password are required to add parts to your inventory.');
-      console.error('Set --rebrickable-user and --rebrickable-password or REBRICKABLE_USER and REBRICKABLE_PASSWORD.');
+      printError('Rebrickable username and password are required to add parts to your inventory.');
+      printError('Set --rebrickable-user and --rebrickable-password or REBRICKABLE_USER and REBRICKABLE_PASSWORD.');
       process.exit(1);
     }
 
@@ -46,7 +47,7 @@ program
       process.exit(1);
     }
     setSelectedDevice(device);
-    console.log(`Using camera: ${device}`);
+    printLine(`Using camera: ${device}`);
 
     // Select part list interactively
     await rebrickable.selectPartList();
@@ -61,13 +62,13 @@ program
   .action(async (options) => {
     const rebrickableKey = options.rebrickableKey || process.env.REBRICKABLE_API_KEY;
     if (!rebrickableKey) {
-      console.error('Rebrickable API key is required. Set --rebrickable-key or REBRICKABLE_API_KEY.');
+      printError('Rebrickable API key is required. Set --rebrickable-key or REBRICKABLE_API_KEY.');
       process.exit(1);
     }
 
     const rebrickable = new RebrickableWrapper(rebrickableKey);
     await rebrickable.refreshColors();
-    console.log('Color cache refreshed.');
+    printLine('Color cache refreshed.');
   });
 
 program.parse();

@@ -1,4 +1,4 @@
-import { RebrickableClient as RebrickableApiClient, type Color, type ListResult, type Part, type UserPart } from 'rebrickable-api-client';
+import { RebrickableClient as RebrickableApiClient, type Color, type ListResult, type Part, type UserPart, type Paginated } from 'rebrickable-api-client';
 import { loadColorCache, refreshColorCache, findColorId } from './colorCache.js';
 import { promptUser } from '../utils/prompt.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
@@ -8,6 +8,7 @@ export class RebrickableWrapper {
   public client: RebrickableApiClient;
   private colors: Color[] = [];
   private partListId: string | null = null;
+  private partListCache: Map<string, UserPart> = new Map();
 
   constructor(apiKey: string, userToken?: string) {
     this.client = new RebrickableApiClient({ apiKey, userToken });
@@ -49,6 +50,8 @@ export class RebrickableWrapper {
 
       if (answer.toLowerCase() === 'y' || answer === '') {
         this.partListId = defaultPartListId;
+        // Load existing parts into cache
+        await this.loadPartListCache();
         return;
       }
     }
@@ -76,11 +79,29 @@ export class RebrickableWrapper {
       this.partListId = partLists[selectedIndex - 1].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
+      // Load existing parts into cache
+      await this.loadPartListCache();
     } else {
       console.log('Invalid selection. Using first part list.');
       this.partListId = partLists[0].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
+      // Load existing parts into cache
+      await this.loadPartListCache();
+    }
+  }
+
+  async loadPartListCache(): Promise<void> {
+    if (!this.partListId) return;
+    try {
+      const { results } = await this.client.listPartListParts(this.partListId);
+      this.partListCache.clear();
+      for (const part of results) {
+        const cacheKey = `${part.part.part_num}:${part.color.id}`;
+        this.partListCache.set(cacheKey, part);
+      }
+    } catch (error: any) {
+      console.error('Error loading part list cache:', error);
     }
   }
 
@@ -166,18 +187,6 @@ export class RebrickableWrapper {
     return parseInt(userInput, 10);
   }
 
-  async findPartInList(partId: string, colorId: number): Promise<UserPart | null> {
-    try {
-      const { results } = await this.client.listPartListParts(this.partListId!);
-      return results.find(
-        (part: UserPart) => part.part.part_num === partId && part.color.id === colorId
-      ) ?? null;
-    } catch (error: any) {
-      console.error('Error checking part in list:', error);
-      return null;
-    }
-  }
-
   async addPart(partId: string, colorName: string, partName?: string): Promise<void> {
     if (!this.partListId) {
       throw new Error('Part list not selected. Call selectPartList() first.');
@@ -193,10 +202,10 @@ export class RebrickableWrapper {
       return; // Skip this part
     }
 
-    try {
-      // Check if part/color combination already exists in the list
-      const existingPart = await this.findPartInList(resolvedPartId, resolvedColorId);
+    const cacheKey = `${resolvedPartId}:${resolvedColorId}`;
+    const existingPart = this.partListCache.get(cacheKey);
 
+    try {
       if (existingPart) {
         // Update quantity of existing part
         await this.client.updatePartListPart(
@@ -205,9 +214,13 @@ export class RebrickableWrapper {
           resolvedColorId,
           { quantity: existingPart.quantity + 1 }
         );
+        // Update cache
+        this.partListCache.set(cacheKey, { ...existingPart, quantity: existingPart.quantity + 1 });
       } else {
         // Add new part to the list
-        await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+        const newPart = await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+        // Update cache
+        this.partListCache.set(cacheKey, newPart);
       }
     } catch (error: any) {
       // Improve error message with resolved part/color IDs

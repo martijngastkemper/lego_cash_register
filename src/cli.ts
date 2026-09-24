@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { RebrickableWrapper } from './rebrickable/client.js';
 import { BrickognizeClient } from './brickognize/client.js';
 import { startContinuousScanning } from './scanner/continuous.js';
-import { selectDevice, setSelectedDevice, listDevices } from './camera/capture.js';
+import { selectDevice, setSelectedDevice } from './camera/capture.js';
 import { printLine, printError } from './utils/output.js';
 
 const program = new Command();

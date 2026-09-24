@@ -18,9 +18,6 @@ export async function startContinuousScanning(
   // Set the readline interface for promptUser
   setReadlineInterface(rl);
 
-  // Show initial prompt
-  console.log('Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.');
-
   // Set up raw mode for single-key input
   setRawMode(true);
 

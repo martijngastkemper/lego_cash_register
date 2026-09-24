@@ -20,46 +20,61 @@ export async function startContinuousScanning(
 
   console.log('Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.');
 
+  // Set up raw mode for single-key input
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding('utf8');
+
   process.on('SIGINT', async () => {
     console.log('\nStopping...');
+    process.stdin.setRawMode(false);
     closeReadlineInterface();
     cleanupTempFiles();
     process.exit(0);
   });
 
-  while (true) {
-    const input = await new Promise<string>((resolve) => {
-      rl.question('Press Enter to scan a part (or "r" to repeat, "q" to quit): ', resolve);
-    });
+  // Handle keypress events
+  process.stdin.on('data', async (key: Buffer) => {
+    const input = key.toString();
 
-    if (input.toLowerCase() === 'q') {
+    if (input === 'q') {
+      process.stdin.setRawMode(false);
       closeReadlineInterface();
       cleanupTempFiles();
       rl.close();
-      break;
+      process.exit(0);
     }
 
-    if (input.toLowerCase() === 'r' && lastScannedPart) {
-      await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, true);
-      console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
-      continue;
-    }
-
-    try {
-      const imagePath = await captureImage();
-      const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
-
-      if (!scannedPart) {
-        console.log('Part skipped.');
-        continue;
+    if (input === 'r' && lastScannedPart) {
+      try {
+        await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, true);
+        console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
+      } catch (error) {
+        console.error('Error repeating part:', error);
       }
-
-      lastScannedPart = scannedPart;
-
-      await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
-      console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
-    } catch (error) {
-      console.error('Error scanning part:', error);
+      return;
     }
-  }
+
+    if (input === '\r' || input === '\n') {
+      try {
+        const imagePath = await captureImage();
+        const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
+
+        if (!scannedPart) {
+          console.log('Part skipped.');
+          return;
+        }
+
+        lastScannedPart = scannedPart;
+
+        await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
+        console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+      } catch (error) {
+        console.error('Error scanning part:', error);
+      }
+    }
+  });
+
+  // Keep the process alive
+  await new Promise(() => {});
 }

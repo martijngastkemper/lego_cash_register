@@ -181,6 +181,12 @@ export class RebrickableWrapper {
       return; // Skip this part
     }
 
-    await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+    try {
+      await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+    } catch (error: any) {
+      // Improve error message with part details
+      const partDetails = partName ? `${partName} (${partId})` : partId;
+      throw new Error(`Failed to add part ${partDetails} (color: ${colorName}) to part list: ${error.message}`);
+    }
   }
 }

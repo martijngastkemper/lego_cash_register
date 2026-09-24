@@ -65,10 +65,10 @@ Run the tool using `node`:
 ```bash
 node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
 ```
-- The camera will open, and you can press **Enter** to capture an image.
-- The tool will detect the part and add it directly to your selected Rebrickable part list.
-- Press **`r` + Enter** to repeat the last scanned part.
-- Press **`q` + Enter** to stop scanning.
+  - The camera will open, and you can press **Enter** to capture an image.
+  - The tool will detect the part and add it directly to your selected Rebrickable part list.
+  - Press **`r`** to repeat the last scanned part (no Enter needed).
+  - Press **`q`** to stop scanning (no Enter needed).
 
 ### Refresh Color Cache
 ```bash
@@ -115,18 +115,18 @@ node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ```bash
 $ lego-scan scan --rebrickable-user myuser --rebrickable-password mypass
 Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.
-Press Enter to scan a part (or "r" to repeat, "q" to quit): [press Enter]
+[press Enter]
 * Camera captures image *
 Added to Rebrickable: Brick 2 x 4 (Part: 3001, Color: Red)
 
-Press Enter to scan a part (or "r" to repeat, "q" to quit): [press Enter]
+[press Enter]
 * Camera captures image *
 Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
-Press Enter to scan a part (or "r" to repeat, "q" to quit): r
+[press r]
 Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
-Press Enter to scan a part (or "r" to repeat, "q" to quit): q
+[press q]
 ```
 
 ---

@@ -58,5 +58,17 @@ describe('scanner/keyDecoder', () => {
       expect(result.action).toEqual({ type: 'ignore' });
       expect(result.repeatCountInput).toBe('');
     });
+
+    it('backspace removes the last buffered digit', () => {
+      const result = decodeScanKey('\x7f', '12');
+      expect(result.action).toEqual({ type: 'backspace' });
+      expect(result.repeatCountInput).toBe('1');
+    });
+
+    it('backspace on an empty buffer is ignored', () => {
+      const result = decodeScanKey('\x7f', '');
+      expect(result.action).toEqual({ type: 'ignore' });
+      expect(result.repeatCountInput).toBe('');
+    });
   });
 });

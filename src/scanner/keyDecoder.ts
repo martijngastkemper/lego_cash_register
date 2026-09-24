@@ -1,5 +1,6 @@
 export type ScanKeyAction =
   | { type: 'accumulate'; digit: string }
+  | { type: 'backspace' }
   | { type: 'repeat'; count: number }
   | { type: 'undo' }
   | { type: 'scan' }
@@ -26,6 +27,17 @@ export function decodeScanKey(input: string, repeatCountInput: string): KeyDecod
       action: { type: 'accumulate', digit: input },
       repeatCountInput: repeatCountInput + input,
     };
+  }
+
+  // Backspace removes the last buffered digit
+  if (input === '\x7f' || input === '\b') {
+    if (repeatCountInput.length > 0) {
+      return {
+        action: { type: 'backspace' },
+        repeatCountInput: repeatCountInput.slice(0, -1),
+      };
+    }
+    return { action: { type: 'ignore' }, repeatCountInput };
   }
 
   if (input === 'r') {

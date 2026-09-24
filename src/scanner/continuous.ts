@@ -130,7 +130,13 @@ export async function startContinuousScanning(
   // Handle keypress events
   process.stdin.on('data', (key: Buffer) => {
     const input = key.toString();
+    const previousBuffer = repeatCountInput;
     const { action, repeatCountInput: nextBuffer } = decodeScanKey(input, repeatCountInput);
+
+    // Erase echoed digits that are no longer buffered
+    if (nextBuffer.length < previousBuffer.length) {
+      printInline('\b \b'.repeat(previousBuffer.length - nextBuffer.length));
+    }
     repeatCountInput = nextBuffer;
 
     if (action.type === 'quit') {
@@ -142,7 +148,12 @@ export async function startContinuousScanning(
       process.exit(0);
     }
 
-    if (action.type === 'accumulate' || action.type === 'ignore') {
+    if (action.type === 'accumulate') {
+      printInline(action.digit); // Echo the buffered digit
+      return;
+    }
+
+    if (action.type === 'backspace' || action.type === 'ignore') {
       return; // Prompt stays on screen
     }
 

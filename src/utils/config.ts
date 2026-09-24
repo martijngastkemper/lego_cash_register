@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { xdgConfigDir } from './xdg.js';
 
-const CONFIG_DIR = path.join(process.env.HOME || '', '.lego-scan');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+function configFilePath(): string {
+  return path.join(xdgConfigDir('lego-scan'), 'config.json');
+}
 
 interface Config {
   lastPartListId?: string;
@@ -14,12 +16,13 @@ let configCache: Config | null = null;
 export function loadConfig(): Config {
   if (configCache) return configCache;
 
-  if (!fs.existsSync(CONFIG_FILE)) {
+  const configFile = configFilePath();
+  if (!fs.existsSync(configFile)) {
     return {};
   }
 
   try {
-    const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const data = fs.readFileSync(configFile, 'utf-8');
     configCache = JSON.parse(data) as Config;
     return configCache;
   } catch {
@@ -29,8 +32,7 @@ export function loadConfig(): Config {
 
 export function saveConfig(config: Config): void {
   configCache = config;
-  if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  }
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  const configFile = configFilePath();
+  fs.mkdirSync(path.dirname(configFile), { recursive: true });
+  fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
 }

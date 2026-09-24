@@ -25,15 +25,19 @@ program
       process.exit(1);
     }
 
-    const rebrickable = new RebrickableWrapper(rebrickableKey);
-    await rebrickable.initialize();
-
     const user = options.rebrickableUser || process.env.REBRICKABLE_USER;
     const password = options.rebrickablePassword || process.env.REBRICKABLE_PASSWORD;
+
+    const rebrickable = new RebrickableWrapper(rebrickableKey);
+    await rebrickable.initialize();
 
     if (user && password) {
       const { user_token } = await rebrickable.client.getUserToken(user, password);
       rebrickable.client.setUserToken(user_token);
+    } else {
+      console.error('Rebrickable username and password are required to add parts to your inventory.');
+      console.error('Set --rebrickable-user and --rebrickable-password or REBRICKABLE_USER and REBRICKABLE_PASSWORD.');
+      process.exit(1);
     }
 
     // Select part list interactively

@@ -7,10 +7,8 @@ import { setReadlineInterface, closeReadlineInterface } from '../utils/prompt.js
 
 export async function startContinuousScanning(
   rebrickable: RebrickableWrapper,
-  brickognize: BrickognizeClient,
-  dryRun: boolean
+  brickognize: BrickognizeClient
 ): Promise<void> {
-  const partsList: ScannedPart[] = [];
   let lastScannedPart: ScannedPart | null = null;
   const rl = readline.createInterface({
     input: process.stdin,
@@ -25,9 +23,6 @@ export async function startContinuousScanning(
   process.on('SIGINT', async () => {
     console.log('\nStopping...');
     closeReadlineInterface();
-    if (dryRun) {
-      await finalizePartsList(partsList);
-    }
     cleanupTempFiles();
     process.exit(0);
   });
@@ -39,23 +34,14 @@ export async function startContinuousScanning(
 
     if (input.toLowerCase() === 'q') {
       closeReadlineInterface();
-      if (dryRun) {
-        await finalizePartsList(partsList);
-      }
       cleanupTempFiles();
       rl.close();
       break;
     }
 
     if (input.toLowerCase() === 'r' && lastScannedPart) {
-      if (dryRun) {
-        partsList.push({ ...lastScannedPart, timestamp: Date.now() });
-        console.log(`Repeated: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
-        console.log(`Total parts scanned: ${partsList.length}`);
-      } else {
-        await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
-        console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
-      }
+      await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
+      console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
       continue;
     }
 
@@ -70,28 +56,10 @@ export async function startContinuousScanning(
 
       lastScannedPart = scannedPart;
 
-      if (dryRun) {
-        partsList.push(scannedPart);
-        console.log(`Detected: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
-        console.log(`Total parts scanned: ${partsList.length}`);
-      } else {
-        await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
-        console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
-      }
+      await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
+      console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
     } catch (error) {
       console.error('Error scanning part:', error);
     }
   }
-}
-
-async function finalizePartsList(partsList: ScannedPart[]): Promise<void> {
-  if (partsList.length === 0) {
-    console.log('No parts scanned.');
-    return;
-  }
-
-  console.log('\nDry run. Parts list:');
-  partsList.forEach((part) => {
-    console.log(`- ${part.name} (ID: ${part.partId}, Color: ${part.colorName})`);
-  });
 }

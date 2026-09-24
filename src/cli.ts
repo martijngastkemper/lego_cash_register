@@ -12,8 +12,7 @@ program
   .description('Scan LEGO parts continuously and add to Rebrickable (macOS only)')
   .option('--rebrickable-key <key>', 'Rebrickable API key (or set REBRICKABLE_API_KEY)')
   .option('--rebrickable-user <user>', 'Rebrickable username (or set REBRICKABLE_USER)')
-  .option('--rebrickable-password <password>', 'Rebrickable password (or set REBRICKABLE_PASSWORD)')
-  .option('--dry-run', 'Scan without adding to Rebrickable');
+  .option('--rebrickable-password <password>', 'Rebrickable password (or set REBRICKABLE_PASSWORD)');
 
 program
   .command('scan')
@@ -44,7 +43,7 @@ program
     await rebrickable.selectPartList();
 
     const brickognize = new BrickognizeClient();
-    await startContinuousScanning(rebrickable, brickognize, options.dryRun);
+    await startContinuousScanning(rebrickable, brickognize);
   });
 
 program

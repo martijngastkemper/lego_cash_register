@@ -1,6 +1,6 @@
 # LEGO Part Scanner CLI
 
-A **macOS-only** command-line tool to scan LEGO parts using your webcam and add them to your [Rebrickable](https://rebrickable.com/) inventory. Powered by the [Brickognize API](https://brickognize.com/) for image recognition.
+A **macOS-only** command-line tool to scan LEGO parts using your webcam and add them to your [Rebrickable](https://rebrickable.com/) part lists. Powered by the [Brickognize API](https://brickognize.com/) for image recognition.
 
 ---
 
@@ -8,9 +8,10 @@ A **macOS-only** command-line tool to scan LEGO parts using your webcam and add 
 
 - **Continuous Scanning**: Keep your camera open and scan parts one after another.
 - **Automatic Part Detection**: Uses Brickognize to identify LEGO parts from images.
-- **Rebrickable Integration**: Automatically adds scanned parts to your Rebrickable inventory.
+- **Rebrickable Integration**: Automatically adds scanned parts to your Rebrickable part lists.
 - **Color Mapping**: Caches Rebrickable's color list locally for offline use.
 - **Interactive Prompts**: If a part or color isn't recognized, you'll be prompted to enter the correct ID.
+- **Repeat Last Part**: Press **`r`** to add the same part again without rescanning.
 
 ---
 
@@ -65,15 +66,9 @@ Run the tool using `node`:
 node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
 ```
 - The camera will open, and you can press **Enter** to capture an image.
-- The tool will detect the part and add it to a temporary list.
-- Press **`q` + Enter** to stop scanning and upload all parts to Rebrickable.
-
-### Dry Run (Scan Without Uploading)
-```bash
-node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --dry-run
-```
-- Scans parts but does **not** add them to Rebrickable.
-- Useful for testing or verifying part detection.
+- The tool will detect the part and add it directly to your selected Rebrickable part list.
+- Press **`r` + Enter** to repeat the last scanned part.
+- Press **`q` + Enter** to stop scanning.
 
 ### Refresh Color Cache
 ```bash
@@ -86,23 +81,31 @@ node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 
 ## Workflow
 
-1. **Start Scanning**:
+### Recommended Workflow for Quality Control
+1. **Create a Temporary Part List**:
+   - In Rebrickable, create a new part list (e.g., "Scanned Parts - 2024-09-24").
+   - Use this list for scanning.
+
+2. **Scan Parts**:
    ```bash
    lego-scan scan --rebrickable-user myuser --rebrickable-password mypass
    ```
-2. **Capture Parts**:
-   - Position a LEGO part in front of your camera.
-   - Press **Enter** to capture an image.
-   - The tool will detect the part and display its name, ID, and color.
-   - Repeat for additional parts.
+   - Select your temporary part list when prompted.
+   - Scan all your parts.
 
-3. **Stop Scanning**:
-   - Press **`q` + Enter** to stop.
-   - All scanned parts will be uploaded to your Rebrickable inventory.
+3. **Review and Move Parts**:
+   - After scanning, go to Rebrickable and open your temporary part list.
+   - Use Rebrickable's **Bulk Edit** tool to review the scanned parts.
+   - Correct any mistakes (e.g., wrong part or color IDs from Brickognize).
+   - Move the parts to your final part list or inventory.
 
-4. **Handle Errors**:
-   - If a part or color isn't recognized, you'll be prompted to enter the correct ID.
-   - If the camera fails, retry by pressing **Enter** again.
+4. **Delete Temporary List**:
+   - Once verified, delete the temporary part list.
+
+### Why This Workflow?
+- **Catch Scanning Errors**: Brickognize may occasionally misidentify parts or colors. Reviewing in Rebrickable lets you catch and fix these mistakes.
+- **Batch Processing**: The Bulk Edit tool makes it easy to correct multiple parts at once.
+- **Flexibility**: You can scan parts over multiple sessions and review them all together.
 
 ---
 
@@ -111,25 +114,19 @@ node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ### Example Session
 ```bash
 $ lego-scan scan --rebrickable-user myuser --rebrickable-password mypass
-Starting continuous scanning. Press "q" + Enter to stop.
-Press Enter to scan a part (or "q" to quit): [press Enter]
+Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.
+Press Enter to scan a part (or "r" to repeat, "q" to quit): [press Enter]
 * Camera captures image *
-Detected: Brick 2 x 4 (Part: 3001, Color: Red)
-Added to parts list: Brick 2 x 4 (ID: 3001, Color: 1)
-Total parts scanned: 1
+Added to Rebrickable: Brick 2 x 4 (Part: 3001, Color: Red)
 
-Press Enter to scan a part (or "q" to quit): [press Enter]
+Press Enter to scan a part (or "r" to repeat, "q" to quit): [press Enter]
 * Camera captures image *
-Detected: Tile 2 x 2 (Part: 3068, Color: Blue)
-Added to parts list: Tile 2 x 2 (ID: 3068, Color: 4)
-Total parts scanned: 2
+Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
-Press Enter to scan a part (or "q" to quit): q
+Press Enter to scan a part (or "r" to repeat, "q" to quit): r
+Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
-Finalizing parts list...
-Added to Rebrickable: Brick 2 x 4
-Added to Rebrickable: Tile 2 x 2
-Parts list finalized.
+Press Enter to scan a part (or "r" to repeat, "q" to quit): q
 ```
 
 ---

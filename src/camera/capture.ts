@@ -111,7 +111,7 @@ export async function captureImage(): Promise<string> {
   const deviceOption = selectedDevice ? `-d "${selectedDevice}"` : '';
   process.stdout.write('\n📸 Capturing image... ');
   await execAsync(`imagesnap ${deviceOption} ${imagePath}`);
-  console.log('✅ Done!');
+  console.log('Done.');
   return imagePath;
 }
 

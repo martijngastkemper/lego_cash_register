@@ -40,7 +40,7 @@ export async function startContinuousScanning(
     }
 
     if (input.toLowerCase() === 'r' && lastScannedPart) {
-      await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
+      await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, true);
       console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
       continue;
     }

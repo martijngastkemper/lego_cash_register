@@ -1,4 +1,4 @@
-import { RebrickableClient as RebrickableApiClient, type Color, type ListResult, type Part } from 'rebrickable-api-client';
+import { RebrickableClient as RebrickableApiClient, type Color, type ListResult, type Part, type UserPart } from 'rebrickable-api-client';
 import { loadColorCache, refreshColorCache, findColorId } from './colorCache.js';
 import { promptUser } from '../utils/prompt.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
@@ -166,7 +166,19 @@ export class RebrickableWrapper {
     return parseInt(userInput, 10);
   }
 
-  async addPart(partId: string, colorName: string, partName?: string): Promise<void> {
+  async findPartInList(partId: string, colorId: number): Promise<UserPart | null> {
+    try {
+      const { results } = await this.client.listPartListParts(this.partListId!);
+      return results.find(
+        (part: UserPart) => part.part.part_num === partId && part.color.id === colorId
+      ) ?? null;
+    } catch (error: any) {
+      console.error('Error checking part in list:', error);
+      return null;
+    }
+  }
+
+  async addPart(partId: string, colorName: string, partName?: string, incrementQuantity?: boolean): Promise<void> {
     if (!this.partListId) {
       throw new Error('Part list not selected. Call selectPartList() first.');
     }
@@ -182,7 +194,23 @@ export class RebrickableWrapper {
     }
 
     try {
-      await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+      // Check if part/color combination already exists in the list
+      const existingPart = incrementQuantity
+        ? await this.findPartInList(resolvedPartId, resolvedColorId)
+        : null;
+
+      if (existingPart) {
+        // Update quantity of existing part
+        await this.client.updatePartListPart(
+          this.partListId,
+          resolvedPartId,
+          resolvedColorId,
+          { quantity: existingPart.quantity + 1 }
+        );
+      } else {
+        // Add new part to the list
+        await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
+      }
     } catch (error: any) {
       // Improve error message with resolved part/color IDs
       const partDetails = partName ? `${partName} (${partId})` : partId;

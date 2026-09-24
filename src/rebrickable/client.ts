@@ -184,9 +184,9 @@ export class RebrickableWrapper {
     try {
       await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, 1);
     } catch (error: any) {
-      // Improve error message with part details
+      // Improve error message with resolved part/color IDs
       const partDetails = partName ? `${partName} (${partId})` : partId;
-      throw new Error(`Failed to add part ${partDetails} (color: ${colorName}) to part list: ${error.message}`);
+      throw new Error(`Failed to add part ${partDetails} (resolved: ${resolvedPartId}, color: ${colorName} -> ${resolvedColorId}) to part list: ${error.message}`);
     }
   }
 }

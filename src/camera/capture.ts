@@ -20,7 +20,25 @@ let selectedDevice: string | null = null;
 export async function listDevices(): Promise<string[]> {
   try {
     const { stdout } = await execAsync('imagesnap -l');
-    const devices = stdout.trim().split('\n').filter((line: string) => line.trim() !== '');
+    const lines = stdout.trim().split('\n');
+    
+    // Parse imagesnap -l output format:
+    // Video Devices:
+    // => MacBook Air Camera
+    // => iPhone 11 Camera
+    const devices: string[] = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      // Skip header lines like "Video Devices:"
+      if (trimmed.endsWith(':') || trimmed === '') {
+        continue;
+      }
+      // Remove "=> " prefix if present
+      const deviceName = trimmed.startsWith('=> ') ? trimmed.slice(3) : trimmed;
+      if (deviceName) {
+        devices.push(deviceName);
+      }
+    }
     return devices;
   } catch (error: any) {
     console.error('Error listing devices:', error.message);

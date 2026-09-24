@@ -18,6 +18,7 @@ export async function startContinuousScanning(
   // Set the readline interface for promptUser
   setReadlineInterface(rl);
 
+  // Show initial prompt
   console.log('Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.');
 
   // Set up raw mode for single-key input
@@ -31,12 +32,21 @@ export async function startContinuousScanning(
     process.exit(0);
   });
 
+  // Function to show the prompt
+  function showPrompt(): void {
+    process.stdout.write('Press Enter to scan a part (or "r" to repeat, "q" to quit): ');
+  }
+
+  // Show initial prompt
+  showPrompt();
+
   // Handle keypress events
   process.stdin.on('data', async (key: Buffer) => {
     const input = key.toString();
 
     if (input === 'q') {
       setRawMode(false);
+      console.log(''); // New line after quit
       closeReadlineInterface();
       cleanupTempFiles();
       rl.close();
@@ -46,10 +56,11 @@ export async function startContinuousScanning(
     if (input === 'r' && lastScannedPart) {
       try {
         await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
-        console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
+        console.log(`\nAdded to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
       } catch (error) {
-        console.error('Error repeating part:', error);
+        console.error('\nError repeating part:', error);
       }
+      showPrompt();
       return;
     }
 
@@ -59,17 +70,19 @@ export async function startContinuousScanning(
         const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
 
         if (!scannedPart) {
-          console.log('Part skipped.');
+          console.log('\nPart skipped.');
+          showPrompt();
           return;
         }
 
         lastScannedPart = scannedPart;
 
         await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
-        console.log(`Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+        console.log(`\nAdded to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
       } catch (error) {
-        console.error('Error scanning part:', error);
+        console.error('\nError scanning part:', error);
       }
+      showPrompt();
     }
   });
 

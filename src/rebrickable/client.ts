@@ -93,8 +93,8 @@ export class RebrickableWrapper {
 
   async searchPartsByPrefix(prefix: string): Promise<Array<{ id: string; name: string }>> {
     try {
-      const { results } = await this.client.listParts({ search: prefix });
-      return results.map((part: Part) => ({ id: part.part_num, name: part.name }));
+      const { results } = await this.client.listParts({ search: prefix, pageSize: 5 });
+      return results.slice(0, 5).map((part: Part) => ({ id: part.part_num, name: part.name }));
     } catch (error: any) {
       console.error('Error searching for parts:', error);
       return [];

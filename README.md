@@ -153,7 +153,7 @@ Press Enter to scan a part (or "r" to repeat, "q" to quit):
 ✅ Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
 
 [press r]
-✅ Added to Rebrickable: Tile 2 x 2 (Part: 3068, Color: Blue)
+🔁 Added to Rebrickable again
 
 [press q]
 ```

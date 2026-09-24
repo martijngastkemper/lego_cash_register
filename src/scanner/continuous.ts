@@ -64,7 +64,7 @@ export async function startContinuousScanning(
     if (input === 'r' && lastScannedPart) {
       try {
         await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
-        console.log(`\n✅ Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
+        console.log('\n🔁 Added to Rebrickable again');
         playBeep();
       } catch (error) {
         console.error('\n❌ Error repeating part:', error);

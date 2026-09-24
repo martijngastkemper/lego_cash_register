@@ -11,6 +11,7 @@ export async function startContinuousScanning(
   dryRun: boolean
 ): Promise<void> {
   const partsList: ScannedPart[] = [];
+  let lastScannedPart: ScannedPart | null = null;
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -19,7 +20,7 @@ export async function startContinuousScanning(
   // Set the readline interface for promptUser
   setReadlineInterface(rl);
 
-  console.log('Starting continuous scanning. Press "q" + Enter to stop.');
+  console.log('Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.');
 
   process.on('SIGINT', async () => {
     console.log('\nStopping...');
@@ -33,7 +34,7 @@ export async function startContinuousScanning(
 
   while (true) {
     const input = await new Promise<string>((resolve) => {
-      rl.question('Press Enter to scan a part (or "q" to quit): ', resolve);
+      rl.question('Press Enter to scan a part (or "r" to repeat, "q" to quit): ', resolve);
     });
 
     if (input.toLowerCase() === 'q') {
@@ -46,6 +47,18 @@ export async function startContinuousScanning(
       break;
     }
 
+    if (input.toLowerCase() === 'r' && lastScannedPart) {
+      if (dryRun) {
+        partsList.push({ ...lastScannedPart, timestamp: Date.now() });
+        console.log(`Repeated: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
+        console.log(`Total parts scanned: ${partsList.length}`);
+      } else {
+        await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name);
+        console.log(`Added to Rebrickable: ${lastScannedPart.name} (Part: ${lastScannedPart.partId}, Color: ${lastScannedPart.colorName})`);
+      }
+      continue;
+    }
+
     try {
       const imagePath = await captureImage();
       const scannedPart = await scanSinglePart(imagePath, rebrickable, brickognize);
@@ -54,6 +67,8 @@ export async function startContinuousScanning(
         console.log('Part skipped.');
         continue;
       }
+
+      lastScannedPart = scannedPart;
 
       if (dryRun) {
         partsList.push(scannedPart);

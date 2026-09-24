@@ -1,9 +1,12 @@
 import { describe, it, expect, afterEach } from 'vitest';
+import os from 'node:os';
+import path from 'node:path';
 import { xdgConfigDir, xdgCacheDir } from '../../src/utils/xdg.js';
 
 describe('utils/xdg', () => {
   const originalConfig = process.env.XDG_CONFIG_HOME;
   const originalCache = process.env.XDG_CACHE_HOME;
+  const home = os.homedir();
 
   afterEach(() => {
     if (originalConfig === undefined) {
@@ -18,23 +21,29 @@ describe('utils/xdg', () => {
     }
   });
 
-  it('returns the app directory inside XDG_CONFIG_HOME', () => {
-    process.env.XDG_CONFIG_HOME = '/home/test/.config';
-    expect(xdgConfigDir('lego-scan')).toBe('/home/test/.config/lego-scan');
+  it('uses XDG_CONFIG_HOME when set', () => {
+    process.env.XDG_CONFIG_HOME = '/custom/config';
+    expect(xdgConfigDir('lego-scan')).toBe('/custom/config/lego-scan');
   });
 
-  it('throws when XDG_CONFIG_HOME is not set; there is no fallback', () => {
+  it('falls back to ~/.config when XDG_CONFIG_HOME is unset or empty', () => {
     delete process.env.XDG_CONFIG_HOME;
-    expect(() => xdgConfigDir('lego-scan')).toThrow('XDG_CONFIG_HOME is not set');
+    expect(xdgConfigDir('lego-scan')).toBe(path.join(home, '.config', 'lego-scan'));
+
+    process.env.XDG_CONFIG_HOME = '';
+    expect(xdgConfigDir('lego-scan')).toBe(path.join(home, '.config', 'lego-scan'));
   });
 
-  it('returns the app directory inside XDG_CACHE_HOME', () => {
-    process.env.XDG_CACHE_HOME = '/home/test/.cache';
-    expect(xdgCacheDir('lego-scan')).toBe('/home/test/.cache/lego-scan');
+  it('uses XDG_CACHE_HOME when set', () => {
+    process.env.XDG_CACHE_HOME = '/custom/cache';
+    expect(xdgCacheDir('lego-scan')).toBe('/custom/cache/lego-scan');
   });
 
-  it('throws when XDG_CACHE_HOME is not set; there is no fallback', () => {
+  it('falls back to ~/.cache when XDG_CACHE_HOME is unset or empty', () => {
     delete process.env.XDG_CACHE_HOME;
-    expect(() => xdgCacheDir('lego-scan')).toThrow('XDG_CACHE_HOME is not set');
+    expect(xdgCacheDir('lego-scan')).toBe(path.join(home, '.cache', 'lego-scan'));
+
+    process.env.XDG_CACHE_HOME = '';
+    expect(xdgCacheDir('lego-scan')).toBe(path.join(home, '.cache', 'lego-scan'));
   });
 });

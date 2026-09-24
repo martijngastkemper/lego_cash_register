@@ -161,7 +161,7 @@ Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "u" to undo, 
 🔁 Added to Rebrickable again (x3)
 
 [press u]
-↩️ Undid: Tile 2 x 2 (Part: 3068, Color: Blue) (x3)
+🔙 Undid: Tile 2 x 2 (Part: 3068, Color: Blue) (x3)
 
 [press q]
 ```

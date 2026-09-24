@@ -108,7 +108,7 @@ export async function startContinuousScanning(
       try {
         const undone = await rebrickable.undoAdd(lastAdd);
         if (undone) {
-          printLine(`\n↩️ Undid: ${lastAdd.name} (Part: ${lastAdd.partId}, Color: ${lastAdd.colorName})${lastAdd.quantity > 1 ? ` (x${lastAdd.quantity})` : ''}`);
+          printLine(`\n🔙 Undid: ${lastAdd.name} (Part: ${lastAdd.partId}, Color: ${lastAdd.colorName})${lastAdd.quantity > 1 ? ` (x${lastAdd.quantity})` : ''}`);
         } else {
           printError(`\n⚠️ Could not undo: ${lastAdd.name} (Part: ${lastAdd.partId}) is no longer in the part list.`);
         }

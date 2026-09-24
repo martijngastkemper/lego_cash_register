@@ -17,7 +17,7 @@ export async function scanSinglePart(
   const { items, colors } = await brickognize.predictPart(imagePath);
 
   if (!items || items.length === 0) {
-    console.error('❌ No parts detected in the image. Try again with a clearer image.');
+    console.error('\n❌ No parts detected in the image. Try again with a clearer image.');
     return null;
   }
 

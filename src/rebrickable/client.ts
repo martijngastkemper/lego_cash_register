@@ -49,7 +49,7 @@ export class RebrickableWrapper {
 
       if (answer.toLowerCase() === 'y' || answer === '') {
         this.partListId = defaultPartListId;
-        console.log(`Using part list: ${defaultName} (ID: ${this.partListId})`);
+        console.log(`Using part list: ${defaultName}`);
         return;
       }
     }
@@ -77,13 +77,13 @@ export class RebrickableWrapper {
       this.partListId = partLists[selectedIndex - 1].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      console.log(`Using part list: ${partLists[selectedIndex - 1].name} (ID: ${this.partListId})`);
+      console.log(`Using part list: ${partLists[selectedIndex - 1].name}`);
     } else {
       console.log('Invalid selection. Using first part list.');
       this.partListId = partLists[0].id.toString();
       config.lastPartListId = this.partListId;
       saveConfig(config);
-      console.log(`Using part list: ${partLists[0].name} (ID: ${this.partListId})`);
+      console.log(`Using part list: ${partLists[0].name}`);
     }
   }
 

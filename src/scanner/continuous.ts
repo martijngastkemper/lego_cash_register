@@ -1,9 +1,20 @@
 import readline from 'node:readline';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import { captureImage, cleanupTempFiles } from '../camera/capture.js';
 import { RebrickableWrapper } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
 import { ScannedPart, scanSinglePart } from './scan.js';
 import { setReadlineInterface, closeReadlineInterface, setRawMode } from '../utils/prompt.js';
+
+const execAsync = promisify(exec);
+
+function playBeep(): void {
+  // Try macOS osascript beep first, fall back to ASCII bell
+  execAsync('osascript -e \'beep\'').catch(() => {
+    process.stdout.write('\x07');
+  });
+}
 
 export async function startContinuousScanning(
   rebrickable: RebrickableWrapper,
@@ -76,7 +87,7 @@ export async function startContinuousScanning(
 
         await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
         console.log(`\nAdded to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
-        process.stdout.write('\x07');
+        playBeep();
       } catch (error) {
         console.error('\nError scanning part:', error);
       }

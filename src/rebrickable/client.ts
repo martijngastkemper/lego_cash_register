@@ -178,7 +178,7 @@ export class RebrickableWrapper {
     }
   }
 
-  async addPart(partId: string, colorName: string, partName?: string, incrementQuantity?: boolean): Promise<void> {
+  async addPart(partId: string, colorName: string, partName?: string): Promise<void> {
     if (!this.partListId) {
       throw new Error('Part list not selected. Call selectPartList() first.');
     }
@@ -195,9 +195,7 @@ export class RebrickableWrapper {
 
     try {
       // Check if part/color combination already exists in the list
-      const existingPart = incrementQuantity
-        ? await this.findPartInList(resolvedPartId, resolvedColorId)
-        : null;
+      const existingPart = await this.findPartInList(resolvedPartId, resolvedColorId);
 
       if (existingPart) {
         // Update quantity of existing part

@@ -76,6 +76,7 @@ export async function startContinuousScanning(
 
         await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
         console.log(`\nAdded to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
+        process.stdout.write('\x07');
       } catch (error) {
         console.error('\nError scanning part:', error);
       }

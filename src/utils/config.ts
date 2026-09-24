@@ -6,6 +6,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 interface Config {
   lastPartListId?: string;
+  lastDevice?: string;
 }
 
 let configCache: Config | null = null;

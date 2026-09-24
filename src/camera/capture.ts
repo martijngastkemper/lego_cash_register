@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promptUser } from '../utils/prompt.js';
+import { loadConfig, saveConfig } from '../utils/config.js';
 
 const execAsync = promisify(exec);
 
@@ -47,11 +48,32 @@ export async function listDevices(): Promise<string[]> {
 }
 
 export async function selectDevice(): Promise<string | null> {
+  const config = loadConfig();
   const devices = await listDevices();
   
   if (devices.length === 0) {
     console.error('No camera devices found. Please connect a camera.');
     return null;
+  }
+
+  // Check if a last device was previously selected
+  const hasLastDevice = config.lastDevice !== undefined;
+
+  if (hasLastDevice) {
+    // Check if the last device is still available
+    const lastDevice = config.lastDevice!;
+    const lastDeviceIndex = devices.findIndex(d => d === lastDevice);
+    
+    if (lastDeviceIndex !== -1) {
+      // Default to last used device
+      const answer = await promptUser(
+        `Use camera "${lastDevice}" (number, or press Enter)? [Y/n]: `
+      );
+      
+      if (answer.toLowerCase() === 'y' || answer === '') {
+        return lastDevice;
+      }
+    }
   }
 
   if (devices.length === 1) {
@@ -68,11 +90,18 @@ export async function selectDevice(): Promise<string | null> {
   const selectedIndex = parseInt(selection, 10) - 1;
   
   if (selectedIndex >= 0 && selectedIndex < devices.length) {
-    return devices[selectedIndex];
+    const selected = devices[selectedIndex];
+    // Save the selected device
+    config.lastDevice = selected;
+    saveConfig(config);
+    return selected;
   }
   
   console.log('Invalid selection. Using first device.');
-  return devices[0];
+  const firstDevice = devices[0];
+  config.lastDevice = firstDevice;
+  saveConfig(config);
+  return firstDevice;
 }
 
 export async function captureImage(): Promise<string> {

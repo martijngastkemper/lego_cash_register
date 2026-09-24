@@ -74,14 +74,16 @@ export async function startContinuousScanning(
       const count = parseInt(repeatCountInput, 10) || 1;
       repeatCountInput = '';
 
-      if (lastScannedPart) {
-        try {
-          await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
-          console.log(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
-          playBeep();
-        } catch (error) {
-          console.error('\n❌ Error repeating part:', error);
-        }
+      if (!lastScannedPart) {
+        return; // Nothing to repeat; the prompt is still on screen
+      }
+
+      try {
+        await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
+        console.log(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
+        playBeep();
+      } catch (error) {
+        console.error('\n❌ Error repeating part:', error);
       }
       showPrompt();
       return;

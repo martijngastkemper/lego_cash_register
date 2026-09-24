@@ -60,10 +60,21 @@ Before running the tool, build it:
 pnpm run build
 ```
 
+### Link for Global Use (Optional)
+To use the `lego-scan` command globally:
+```bash
+pnpm link --global
+```
+This creates a symlink so you can run `lego-scan` from anywhere.
+
 ### Start Continuous Scanning
 Run the tool using `node`:
 ```bash
 node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
+```
+Or if you've linked it globally:
+```bash
+lego-scan scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-user YOUR_REBRICKABLE_USERNAME --rebrickable-password YOUR_REBRICKABLE_PASSWORD
 ```
   - The camera will open, and you can press **Enter** to capture an image.
   - The tool will detect the part and add it directly to your selected Rebrickable part list.
@@ -73,6 +84,10 @@ node dist/cli.js scan --rebrickable-key YOUR_REBRICKABLE_API_KEY --rebrickable-u
 ### Refresh Color Cache
 ```bash
 node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
+```
+Or if you've linked it globally:
+```bash
+lego-scan refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ```
 - Updates the local cache of Rebrickable colors.
 - Run this if you encounter missing color errors.
@@ -114,9 +129,9 @@ node dist/cli.js refresh-colors --rebrickable-key YOUR_REBRICKABLE_API_KEY
 ### Example Session
 ```bash
 $ lego-scan scan --rebrickable-user myuser --rebrickable-password mypass
-Starting continuous scanning. Press Enter to scan, "r" to repeat last part, or "q" to quit.
+Press Enter to scan a part (or "r" to repeat, "q" to quit): 
 [press Enter]
-* Camera captures image *
+Capturing image... Done!
 Added to Rebrickable: Brick 2 x 4 (Part: 3001, Color: Red)
 
 [press Enter]

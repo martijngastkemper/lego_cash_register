@@ -5,6 +5,16 @@ import { printLine, printError } from '../utils/output.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
 import { stripPartIdSuffix } from '../utils/partId.js';
 
+/** Details of a completed add, sufficient to undo it later. */
+export interface AddedPart {
+  listId: string;
+  partId: string;
+  colorId: number;
+  colorName: string;
+  name: string;
+  quantity: number;
+}
+
 export class RebrickableWrapper {
   public client: RebrickableApiClient;
   private colors: Color[] = [];
@@ -183,25 +193,25 @@ export class RebrickableWrapper {
     }
   }
 
-  async addPart(partId: string, colorName: string, partName?: string, quantity: number = 1): Promise<void> {
+  async addPart(partId: string, colorName: string, partName?: string, quantity: number = 1): Promise<AddedPart | null> {
     if (!this.partListId) {
       throw new Error('Part list not selected. Call selectPartList() first.');
     }
 
     const resolvedPartId = await this.resolvePartId(partId, partName, colorName);
     if (resolvedPartId === null) {
-      return; // Skip this part
+      return null; // Skip this part
     }
 
     const resolvedColorId = await this.resolveColorId(colorName);
     if (resolvedColorId === null) {
-      return; // Skip this part
+      return null; // Skip this part
     }
 
     try {
       // First try to fetch the existing part from the list
       const existingPart = await this.findPartInList(resolvedPartId, resolvedColorId);
-      
+
       if (existingPart) {
         // Part exists: update quantity with PATCH
         await this.client.updatePartListPart(
@@ -214,10 +224,39 @@ export class RebrickableWrapper {
         // Part doesn't exist: create with POST
         await this.client.addPartListPart(this.partListId, resolvedPartId, resolvedColorId, quantity);
       }
+
+      return {
+        listId: this.partListId,
+        partId: resolvedPartId,
+        colorId: resolvedColorId,
+        colorName,
+        name: partName || partId,
+        quantity,
+      };
     } catch (error: any) {
       // Improve error message with resolved part/color IDs
       const partDetails = partName ? `${partName} (${partId})` : partId;
       throw new Error(`Failed to add part ${partDetails} (resolved: ${resolvedPartId}, color: ${colorName} -> ${resolvedColorId}) to part list: ${error.message}`);
     }
+  }
+
+  /**
+   * Undo a previous add by subtracting its quantity. Removes the entry
+   * from the part list when the quantity reaches zero.
+   * Returns false if the part is no longer in the list.
+   */
+  async undoAdd(added: AddedPart): Promise<boolean> {
+    const existingPart = await this.findPartInList(added.partId, added.colorId);
+    if (!existingPart) {
+      return false;
+    }
+
+    const newQuantity = existingPart.quantity - added.quantity;
+    if (newQuantity > 0) {
+      await this.client.updatePartListPart(added.listId, added.partId, added.colorId, { quantity: newQuantity });
+    } else {
+      await this.client.removePartListPart(added.listId, added.partId, added.colorId);
+    }
+    return true;
   }
 }

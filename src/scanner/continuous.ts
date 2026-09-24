@@ -2,7 +2,7 @@ import readline from 'node:readline';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { captureImage, cleanupTempFiles } from '../camera/capture.js';
-import { RebrickableWrapper } from '../rebrickable/client.js';
+import { RebrickableWrapper, AddedPart } from '../rebrickable/client.js';
 import { BrickognizeClient } from '../brickognize/client.js';
 import { ScannedPart, scanSinglePart } from './scan.js';
 import { setReadlineInterface, closeReadlineInterface, setRawMode } from '../utils/prompt.js';
@@ -22,6 +22,8 @@ export async function startContinuousScanning(
   brickognize: BrickognizeClient
 ): Promise<void> {
   let lastScannedPart: ScannedPart | null = null;
+  // Stack of completed adds, most recent last, for undo
+  const undoStack: AddedPart[] = [];
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -43,7 +45,7 @@ export async function startContinuousScanning(
 
   // Function to show the prompt
   function showPrompt(): void {
-    printInline('Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "q" to quit): ');
+    printInline('Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "u" to undo, "q" to quit): ');
   }
 
   // Show initial prompt
@@ -80,7 +82,8 @@ export async function startContinuousScanning(
       }
 
       try {
-        await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
+        const added = await rebrickable.addPart(lastScannedPart.partId, lastScannedPart.colorName, lastScannedPart.name, count);
+        if (added) undoStack.push(added);
         printLine(`\n🔁 Added to Rebrickable again${count > 1 ? ` (x${count})` : ''}`);
         playBeep();
       } catch (error) {
@@ -92,6 +95,31 @@ export async function startContinuousScanning(
 
     // Any other key resets the repeat count buffer
     repeatCountInput = '';
+
+    if (input === 'u') {
+      const lastAdd = undoStack.pop();
+
+      if (!lastAdd) {
+        printLine('\n⚠️ Nothing to undo.');
+        showPrompt();
+        return;
+      }
+
+      try {
+        const undone = await rebrickable.undoAdd(lastAdd);
+        if (undone) {
+          printLine(`\n↩️ Undid: ${lastAdd.name} (Part: ${lastAdd.partId}, Color: ${lastAdd.colorName})${lastAdd.quantity > 1 ? ` (x${lastAdd.quantity})` : ''}`);
+        } else {
+          printError(`\n⚠️ Could not undo: ${lastAdd.name} (Part: ${lastAdd.partId}) is no longer in the part list.`);
+        }
+      } catch (error) {
+        // Restore the stack entry so the undo can be retried
+        undoStack.push(lastAdd);
+        printError(`\n❌ Error undoing: ${error}`);
+      }
+      showPrompt();
+      return;
+    }
 
     if (input === '\r' || input === '\n') {
       try {
@@ -106,7 +134,8 @@ export async function startContinuousScanning(
 
         lastScannedPart = scannedPart;
 
-        await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
+        const added = await rebrickable.addPart(scannedPart.partId, scannedPart.colorName, scannedPart.name);
+        if (added) undoStack.push(added);
         printLine(`\n✅ Added to Rebrickable: ${scannedPart.name} (Part: ${scannedPart.partId}, Color: ${scannedPart.colorName})`);
         playBeep();
       } catch (error) {

@@ -183,11 +183,11 @@ export class RebrickableWrapper {
 
   async findPartInList(partId: string, colorId: number): Promise<UserPart | null> {
     try {
-      const { results } = await this.client.listPartListParts(this.partListId!);
-      return results.find(
-        (part: UserPart) => part.part.part_num === partId && part.color.id === colorId
-      ) ?? null;
+      return await this.client.getPartListPart(this.partListId!, partId, colorId);
     } catch (error: any) {
+      if (error instanceof Error && error.message.includes('HTTP 404')) {
+        return null; // Part is not in the list yet
+      }
       printError(`Error checking part in list: ${error}`);
       return null;
     }

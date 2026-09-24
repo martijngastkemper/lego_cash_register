@@ -1,17 +1,15 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { promptUser } from '../utils/prompt.js';
 import { printLine, printInline, printError } from '../utils/output.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
 
 const execFileAsync = promisify(execFile);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const TEMP_DIR = path.join(__dirname, '../../../temp');
+const TEMP_DIR = path.join(os.tmpdir(), 'lego_cash_register');
 
 if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });

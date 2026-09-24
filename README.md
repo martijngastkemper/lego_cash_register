@@ -213,9 +213,10 @@ Press Enter to scan a part (or "r" to repeat, "<n>r" for multiple, "u" to undo, 
 │       ├── config.ts           # API keys, env vars
 │       ├── logger.ts           # Logging
 │       └── prompt.ts           # User prompts
-├── temp/                       # Temporary images (auto-cleaned)
 └── README.md                   # This file
 ```
+
+Scan images are stored in the system temp directory (`$TMPDIR/lego_cash_register`) and cleaned up on exit.
 
 ---
 
